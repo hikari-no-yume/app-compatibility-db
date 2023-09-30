@@ -5,7 +5,7 @@ Web app for an emulator app compatibility database
 
 This is a simple web app for managing a public app compatibility database for an emulator project.
 
-I am writing this for [touchHLE](https://touchhle.org/)'s use, but I'm trying to make it general enough that it could be used by other projects as well. To that end, most of the fields are defined by configuration (see `config.example.php`), so you can customise it to fit your needs. I've taken some inspiration from the [WINE AppDB](https://appdb.winehq.org/) and [Dolphin compatibility list](https://sv.dolphin-emu.org/compat/).
+I am writing this for [touchHLE](https://touchhle.org/)'s use, but I'm trying to make it general enough that it could be used by other projects as well. To that end, most of the fields are defined by configuration (see `config.example.php`), so you can customise it to fit your needs. I've taken some inspiration from the [WINE AppDB](https://appdb.winehq.org/) and [Dolphin compatibility list](https://dolphin-emu.org/compat/).
 
 It uses PHP with a SQLite database and no dependencies, so it's very lightweight and should be easy to set up.
 
