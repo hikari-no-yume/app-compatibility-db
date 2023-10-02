@@ -3,6 +3,10 @@
 // Human-readable name of the site, as plain text
 const SITE_NAME = 'App compatibility database';
 
+// URL of the privacy policy of the site (may be external)
+// Make sure this doesn't contradict templates/signin.phpt
+const SITE_PRIVACY_POLICY = "privacy.html";
+
 // Path to the SQLite 3 database, relative to the htdocs directory
 const SITE_DB_PATH = '../app_db.sqlite3';
 
@@ -56,3 +60,14 @@ const REPORT_EXTRA_FIELDS = [
         'at_end' => TRUE,
     ],
 ];
+
+// GitHub API keys for authentication.
+// Register the app at https://github.com/settings/applications/new.
+// The callback URL must be "https://<your domain here>/signin/github-oauth-callback".
+// Be sure to use a different application for testing and for the real site,
+// and never make these public.
+const GITHUB_CLIENT_ID = "aaaaaaaaaaaaaaaaaaaa";
+const GITHUB_CLIENT_SECRET = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+// User-Agent header used when authenticating with the GitHub API.
+const USER_AGENT = "App compatibility database (https://<your domain here>)";

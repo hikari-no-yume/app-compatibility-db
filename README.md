@@ -9,12 +9,18 @@ I am writing this for [touchHLE](https://touchhle.org/)'s use, but I'm trying to
 
 It uses PHP with a SQLite database and no dependencies, so it's very lightweight and should be easy to set up.
 
+Various features:
+
+* Tracks three kinds of items, with a hierarchical relationship:
+  * “Apps” (applications tested in the emulator)
+  * “Versions” (versions of those applications)
+  * “Reports” (different users' experiences with those versions)
+* Users can sign in with their GitHub account
+
 TODO:
 
-* Sign-in
-* Submission
+* Submitting new items
 * Moderation
-* Privacy policy support
 * License (probably will be MPL-2.0)
 * Example server configuration
 
@@ -25,7 +31,7 @@ Make sure you have git, PHP 8 and the SQLite 3 command-line interface installed.
 
 1. `git clone https://github.com/hikari-no-yume/app-compatibility-db`
 2. `cd app-compatibility-db`
-3. Set up configuration: `cp config.example.php config.php` (edit if you want)
+3. Set up a configuration: `cp config.example.php config.php`, then make sure to edit `config.php` appropriately
 4. Set up database: `sqlite3 app_db.sqlite3 -init schema.sql` (then type `.quit` to exit)
 
 You can then do `cd htdocs && php -S localhost:8000` to start a local server.
