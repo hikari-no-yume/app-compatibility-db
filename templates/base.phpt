@@ -2,10 +2,6 @@
 
 namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
-if (isset($breadcrumbs)) {
-
-}
-
 ?>
 <!doctype html>
 <meta charset=utf-8>
