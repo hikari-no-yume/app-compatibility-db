@@ -30,7 +30,7 @@ const SITE_DB_PATH = '../app_db.sqlite3';
 //
 // - There can be any number of fields.
 // - The order of fields in this list is the order they'll show up in tables
-//   and forms up.
+//   and forms.
 // - 'key1', 'key2' etc are the keys used for the fields in the JSON blob, and
 //   are also used as HTML form field names. The keys can be any string, but
 //   it is probably a good idea to only use simple ASCII identifiers.
