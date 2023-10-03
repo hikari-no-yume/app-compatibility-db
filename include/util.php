@@ -6,6 +6,7 @@ namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
 function init(): void {
     ini_set('display_errors', '0');
+    ini_set('session.auto_start', '0'); // See getSession() remarks
 
     require_once '../config.php';
 
@@ -21,10 +22,67 @@ function query(string $query, array $args = []): array {
     return $stmt->fetchAll(\PDO::FETCH_ASSOC);
 }
 
+function redirect(string $url): void {
+    header('HTTP/1.1 303 See Other');
+    header('Location: ' . $url);
+    exit;
+}
+
 function show404(): void {
     header("HTTP/1.1 404 Not Found");
     require '../templates/404.phpt';
     exit;
+}
+
+// Get the current session data, if any. This is intended to not set a cookie
+// if one does not already exist. The idea is that cookies are only set when
+// necessary, so the user's privacy is respected by letting them actively choose
+// whether to take actions that set a cookie, obviating the need for cookie
+// banners or pop-ups.
+function getSession(): ?array {
+    if (!isset($_COOKIE['PHPSESSID'])) {
+        return NULL;
+    }
+    session_start([
+        'name' => 'PHPSESSID',
+        'use_only_cookies' => TRUE,
+        'read_and_close' => TRUE, // prevent lock contention
+        'use_strict_mode' => TRUE, // don't accept unrecognised session IDs
+    ]);
+    if ($_SESSION === []) {
+        return NULL; // session must have been stale
+    }
+    return $_SESSION;
+}
+
+// Set new session data. This will set a cookie, and therefore needs to be
+// called before outputting anything if output buffering isn't in use.
+// Be sure you've informed the user that the action they're taking will set a
+// cookie.
+function setSession(array $sessionData) {
+    session_start([
+        'name' => 'PHPSESSID',
+        'use_only_cookies' => TRUE,
+        'use_strict_mode' => TRUE, // don't recreate sessions with old IDs
+    ]);
+    $_SESSION = $sessionData;
+    session_commit();
+}
+
+// Destroy session and unset session cookie. Same output buffering caveat as
+// setSession() applies.
+function destroySession(): void {
+    if (!isset($_COOKIE['PHPSESSID'])) {
+        return;
+    }
+    session_start([
+        'name' => 'PHPSESSID',
+        'use_only_cookies' => TRUE,
+        'use_strict_mode' => TRUE, // don't accept unrecognised session IDs
+    ]);
+    session_destroy();
+    // Expiry date in the past triggers deletion.
+    setcookie('PHPSESSID', '', time() - 3600);
 }
 
 // Convert extra fields defined in config.php to column/field lists intended for

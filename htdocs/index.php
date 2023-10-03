@@ -26,6 +26,8 @@ if ($path === '/') {
     require '../templates/signin.phpt';
 } else if ($path === '/signin/github-oauth-callback/') {
     require '../templates/github_oauth_callback.phpt';
+} else if ($path === '/signout/') {
+    require '../templates/signout.phpt';
 } else {
     show404();
 }

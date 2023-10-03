@@ -2,7 +2,11 @@ html {
     font-family: sans-serif;
 }
 
-#breadcrumbs, #breadcrumbs > a {
+#signed-in, #signed-in > form > input[type=submit] {
+    float: right;
+}
+
+#breadcrumbs, #breadcrumbs > a, #signed-in {
     color: #555;
     margin-bottom: 1em;
 }
