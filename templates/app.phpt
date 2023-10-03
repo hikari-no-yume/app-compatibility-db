@@ -21,6 +21,11 @@ require 'base.phpt';
 <h3>Versions</h3>
 
 <?php listVersionsForApp($appId); ?>
+<br>
+<form action=/reports/new method=get>
+<input type=hidden name=app value="<?=htmlspecialchars((string)$appId)?>">
+<input type=submit value="Submit report for a new version">
+</form>
 
 <h3>Reports</h3>
 

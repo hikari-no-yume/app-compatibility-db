@@ -19,3 +19,14 @@ table, th, td {
     border-collapse: collapse;
     padding: 0.3em;
 }
+
+label {
+    display: block;
+}
+label + fieldset {
+    margin-top: 0.5em;
+    margin-bottom: 0.25em;
+}
+fieldset {
+    margin-bottom: 0.75em;
+}

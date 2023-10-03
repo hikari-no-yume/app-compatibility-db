@@ -8,3 +8,7 @@ require 'base.phpt';
 
 <h2>Apps</h2>
 <?php listApps(); ?>
+<br>
+<form action=/reports/new method=get>
+<input type=submit value="Submit report for a new app">
+</form>

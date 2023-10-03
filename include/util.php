@@ -121,6 +121,12 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
     } else if (isset($columnInfo['link'])) {
         [$linkUrlPrefix, $linkIdColumn] = $columnInfo['link'];
         $cellContent = '<a href="' . htmlspecialchars($linkUrlPrefix . $row[$linkIdColumn]) . '">' . $cellContent . '</a>';
+    } else if (isset($columnInfo['button'])) {
+        $buttonInfo = $columnInfo['button'];
+        $cellContent = '<form action="' . htmlspecialchars($buttonInfo['action']) . '" method="' . htmlspecialchars($buttonInfo['method']) . '">';
+        $cellContent .= '<input type=hidden name="' . htmlspecialchars($buttonInfo['param_name']) . '" value="' . htmlspecialchars((string)$row[$buttonInfo['param_column']]) . '">';
+        $cellContent .= '<input type=submit value="' . htmlspecialchars($buttonInfo['label']) . '">';
+        $cellContent .= '</form>';
     }
 
     echo '<td>', $cellContent, '</td>';

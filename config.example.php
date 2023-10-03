@@ -10,6 +10,13 @@ const SITE_PRIVACY_POLICY = "privacy.html";
 // Path to the SQLite 3 database, relative to the htdocs directory
 const SITE_DB_PATH = '../app_db.sqlite3';
 
+// Plain-text name and URL for the license that contributions are made under.
+// Don't change this once contributions have been made! There is no tracking for
+// license changes, so the wrong license will be displayed next to old
+// contributions, which is a license violation in and of itself!
+const SITE_CONTENT_LICENSE_NAME = 'CC BY 4.0 International';
+const SITE_CONTENT_LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/';
+
 // Additional fields are stored in the JSON blob columns in the DB.
 // Currently these can only be plain-text, single-line fields.
 //

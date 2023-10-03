@@ -109,9 +109,29 @@ function printApp(array $appInfo): void {
     printRecord($fields, $appInfo);
 }
 
+// Returns NULL if the version isn't found.
+function getVersion(int $id): ?array {
+    $rows = query('
+        SELECT
+            *
+        FROM
+            versions
+        WHERE
+            version_id = :version_id
+        ;
+    ', [':version_id' => $id]);
+
+    if ($rows === []) {
+        return NULL;
+    } else {
+        return $rows[0];
+    }
+}
+
 function listVersionsForApp(int $appId): void {
     $rows = query('
         SELECT
+            versions.version_id AS version_id,
             name,
             report_summaries.rating AS best_rating,
             COALESCE(report_summaries.last_updated, versions.created) AS last_updated,
@@ -155,6 +175,18 @@ function listVersionsForApp(int $appId): void {
         ],
     ];
     $columns += convertExtraFieldInfo(VERSION_EXTRA_FIELDS, TRUE);
+    $columns += [
+        '_new_report' => [
+            'name' => '',
+            'button' => [
+                'action' => '/reports/new',
+                'method' => 'get',
+                'label' => 'Submit report for this version',
+                'param_name' => 'version',
+                'param_column' => 'version_id',
+            ],
+        ],
+    ];
 
     printTable($columns, $rows);
 }
