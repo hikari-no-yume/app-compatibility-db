@@ -24,6 +24,15 @@ TODO:
 * License (probably will be MPL-2.0)
 * Example server configuration
 
+Source code layout:
+
+* [`schema.sql`](schema.sql): SQL schema
+* [`config.example.php`](config.example.php): configuration file example/documentation
+* [`htdocs/`](htdocs/): public files, mainly static assets
+* [`htdocs/index.php`](htdocs/index.php): sole entry point and router
+* [`templates/`](templates/): templates and view/controller code
+* [`include/`](include/): utility functions and model code
+
 Setting up for development
 --------------------------
 
