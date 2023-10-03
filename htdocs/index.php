@@ -17,8 +17,7 @@ if ($path === '/') {
     require '../templates/home.phpt';
 } else if ($path === '/apps/') {
     // This might be its own section at some point.
-    header("HTTP/1.1 303 See Other");
-    header("Location: /");
+    redirect('/');
 } else if (preg_match('#^/apps/(\d+)/$#', $path, $matches) === 1) {
     $appId = (int)$matches[1];
     require '../templates/app.phpt';
