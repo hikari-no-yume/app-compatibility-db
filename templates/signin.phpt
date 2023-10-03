@@ -2,9 +2,19 @@
 
 namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
+// Already logged in
+if (getSession() !== NULL) {
+    redirect('/');
+    return;
+}
+
 $breadcrumbs = ['Sign in'];
 
 $githubSignInUrl = GITHUB_OAUTH_AUTHORIZE_URL . '?client_id=' . rawurlencode(GITHUB_CLIENT_ID);
+
+// Prevent there being two “Sign in” buttons on the same page, which could be
+// confusing.
+$doNotShowSignInStatus = TRUE;
 
 require 'base.phpt';
 

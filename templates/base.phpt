@@ -21,12 +21,18 @@ echo htmlspecialchars(SITE_NAME);
 
 <h1><?=htmlspecialchars(SITE_NAME)?></h1>
 
+<?php if (empty($doNotShowSignInStatus)): ?>
+<div id=sign-in-status-box>
 <?php if ($session !== NULL): ?>
-<div id=signed-in>
 Signed in as: @<?=htmlspecialchars(explode(':', $session['username'])[1])?>
 <form method=post action=/signout>
 <input type=submit value="Sign out">
 </form>
+<?php else: ?>
+<form method=get action=/signin>
+<input type=submit value="Sign in">
+</form>
+<?php endif; ?>
 </div>
 <?php endif; ?>
 

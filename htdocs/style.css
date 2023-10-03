@@ -2,11 +2,11 @@ html {
     font-family: sans-serif;
 }
 
-#signed-in, #signed-in > form > input[type=submit] {
+#sign-in-status-box, #sign-in-status-box > form > input[type=submit] {
     float: right;
 }
 
-#breadcrumbs, #breadcrumbs > a, #signed-in {
+#breadcrumbs, #breadcrumbs > a, #sign-in-status-box {
     color: #555;
     margin-bottom: 1em;
 }
