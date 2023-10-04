@@ -17,6 +17,33 @@ const SITE_DB_PATH = '../app_db.sqlite3';
 const SITE_CONTENT_LICENSE_NAME = 'CC BY 4.0 International';
 const SITE_CONTENT_LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/';
 
+// Compatibility ratings used in reports. These must be numbered 1 to 5,
+// with larger numbers being better. For each rating, there should be a symbol
+// (e.g. a star count) and a short description of what this rating means.
+// This example rating system is heavily inspired by Dolphin's.
+const RATINGS = [
+    1 => [
+        'symbol' => '⭐️',
+        'description' => 'Completely broken: app crashes immediately without any user interaction.',
+    ],
+    2 => [
+        'symbol' => '⭐️⭐️',
+        'description' => 'Only (part of) the main menu, intro or similar is working.',
+    ],
+    3 => [
+        'symbol' => '⭐️⭐️⭐️',
+        'description' => 'Some of the main content of the app works, but with major issues.',
+    ],
+    4 => [
+        'symbol' => '⭐️⭐️⭐️⭐️',
+        'description' => 'The main content of the app works (e.g. entire game is playable) with only small issues.',
+    ],
+    5 => [
+        'symbol' => '⭐️⭐️⭐️⭐️⭐️',
+        'description' => 'Everything works. The app is fully usable.',
+    ],
+];
+
 // Additional fields are stored in the JSON blob columns in the DB.
 // Currently these can only be plain-text, single-line fields.
 //

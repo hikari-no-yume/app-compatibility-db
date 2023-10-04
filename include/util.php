@@ -116,8 +116,8 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
         [$date, $time] = explode(' ', $cell);
         $rfc3339DateTime = $date . 'T' . $time . 'Z';
         $cellContent = '<time datetime="' . $rfc3339DateTime . '">' . $cellContent . '</time>';
-    } else if (($columnInfo['stars'] ?? FALSE) === TRUE) {
-        $cellContent = str_repeat("⭐️", (int)$cell);
+    } else if (($columnInfo['rating'] ?? FALSE) === TRUE) {
+        $cellContent = htmlspecialchars(RATINGS[$cell]['symbol']);
     } else if (isset($columnInfo['link'])) {
         [$linkUrlPrefix, $linkIdColumn] = $columnInfo['link'];
         $cellContent = '<a href="' . htmlspecialchars($linkUrlPrefix . $row[$linkIdColumn]) . '">' . $cellContent . '</a>';
@@ -135,10 +135,10 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
 // Helper function for printRecordForm()
 function printFormCell(string $fieldKey, array /*<array>*/ $fieldInfo, string $fieldName): void {
     echo '<td>';
-    if (($fieldInfo['stars'] ?? FALSE) === TRUE) {
+    if (($fieldInfo['rating'] ?? FALSE) === TRUE) {
         echo '<select name="', htmlspecialchars($fieldName), '" id="', htmlspecialchars($fieldName), '">';
         for ($i = 1; $i <= 5; $i++) {
-            echo '<option value=', $i, '> ', $i, ' - ', str_repeat("⭐️", $i), '</option>';
+            echo '<option value=', $i, '> ', $i, ' - ', htmlspecialchars(RATINGS[$i]['symbol']), ' - ', htmlspecialchars(RATINGS[$i]['description']), '</option>';
         }
         echo '</select>';
     } else {
@@ -219,4 +219,24 @@ function printRecordForm(array /*<array>*/ $fields, string $recordName): void {
     echo '</tbody>';
 
     echo '</table>';
+}
+
+function printRatingsLegend(): void {
+    $columns = [
+        'rating' => [
+            'name' => 'Rating',
+            'rating' => TRUE,
+        ],
+        'description' => [
+            'name' => 'Description',
+        ],
+    ];
+    $rows = [];
+    for ($i = 1; $i <= 5; $i++) {
+        $rows[] = [
+            'rating' => $i,
+            'description' => RATINGS[$i]['description'],
+        ];
+    }
+    printTable($columns, $rows);
 }

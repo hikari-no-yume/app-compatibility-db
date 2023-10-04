@@ -58,7 +58,7 @@ function listApps(): void {
     $columns += [
         'best_rating' => [
             'name' => 'Best rating',
-            'stars' => TRUE,
+            'rating' => TRUE,
         ],
         'last_updated' => [
             'name' => 'Last updated',
@@ -179,7 +179,7 @@ function listVersionsForApp(int $appId): void {
     $columns += [
         'best_rating' => [
             'name' => 'Best rating',
-            'stars' => TRUE,
+            'rating' => TRUE,
         ],
         'last_updated' => [
             'name' => 'Last updated',
@@ -244,7 +244,7 @@ function listReportsForApp(int $appId): void {
     $columns += [
         'rating' => [
             'name' => 'Rating',
-            'stars' => TRUE,
+            'rating' => TRUE,
         ],
         'created' => [
             'name' => 'Created',
@@ -261,7 +261,7 @@ function printReportForm(): void {
     $fields += [
         'rating' => [
             'name' => 'Rating',
-            'stars' => TRUE,
+            'rating' => TRUE,
         ],
     ];
     $fields += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, TRUE);

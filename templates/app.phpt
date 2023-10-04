@@ -30,3 +30,6 @@ require 'base.phpt';
 <h3>Reports</h3>
 
 <?php listReportsForApp($appId); ?>
+
+<h2>Legend</h2>
+<?php printRatingsLegend(); ?>
