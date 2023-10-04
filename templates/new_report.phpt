@@ -18,7 +18,9 @@ if ($session === NULL) {
 // - /reports/new?version=123   => Existing app, existing version, new report
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    echo "TODO";
+    echo "TODO<br><pre>";
+    var_dump($_POST);
+    echo "</pre>";
     exit;
 }
 
@@ -98,16 +100,16 @@ require 'base.phpt';
 <label>
 <input type=radio disabled checked>This report is for a new app:
 </label>
-<fieldset disabled>
+<fieldset>
 <legend>New app</legend>
 Before submitting a report for a new app, <strong>please check the <a href=/apps>list of existing apps</a>.</strong><br><br>
-TODO: fields
+<?php printAppForm(); ?>
 </fieldset>
 <?php endif; ?>
 
 </fieldset>
 
-<fieldset disabled>
+<fieldset>
 <legend>Version</legend>
 
 <?php if ($versionInfo !== NULL): ?>
@@ -127,12 +129,12 @@ TODO: fields
 <label>
 <input type=radio disabled checked>This report is for a new version:
 </label>
-<fieldset disabled>
+<fieldset>
 <legend>New version</legend>
 <?php if ($appInfo !== NULL): ?>
 Before submitting a report for a new version, <strong>please check the <a href="/apps/<?=htmlspecialchars((string)$appId)?>">list of existing versions</a>.</strong><br><br>
 <?php endif; ?>
-TODO: fields
+<?php printVersionForm(); ?>
 </fieldset>
 <?php endif; ?>
 
@@ -140,7 +142,7 @@ TODO: fields
 
 <fieldset>
 <legend>Report</legend>
-TODO: fields
+<?php printReportForm(); ?>
 </fieldset>
 
 <input type=submit value="Submit report">

@@ -101,7 +101,7 @@ function convertExtraFieldInfo(array /*<array>*/ $extraFields, bool $atEnd): arr
     return $columns;
 }
 
-// Helper function for printTable() and printDetail()
+// Helper function for printTable() and printRecord()
 function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<array>*/ $columnInfo): void {
     $cell = (($columnInfo['extra'] ?? FALSE) === TRUE)
           ? ($rowExtra->{$columnKey} ?? NULL)
@@ -130,6 +130,21 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
     }
 
     echo '<td>', $cellContent, '</td>';
+}
+
+// Helper function for printRecordForm()
+function printFormCell(string $fieldKey, array /*<array>*/ $fieldInfo, string $fieldName): void {
+    echo '<td>';
+    if (($fieldInfo['stars'] ?? FALSE) === TRUE) {
+        echo '<select name="', htmlspecialchars($fieldName), '" id="', htmlspecialchars($fieldName), '">';
+        for ($i = 1; $i <= 5; $i++) {
+            echo '<option value=', $i, '> ', $i, ' - ', str_repeat("⭐️", $i), '</option>';
+        }
+        echo '</select>';
+    } else {
+        echo '<input type=text name="', htmlspecialchars($fieldName), '" id="', htmlspecialchars($fieldName), '">';
+    }
+    echo '</td>';
 }
 
 // Print an HTML table with several rows of data.
@@ -182,3 +197,26 @@ function printRecord(array /*<array>*/ $fields, array $record): void {
     echo '</table>';
 }
 
+// Print part of an HTML form (without the <form> tag) for a single record,
+// displayed vertically. The $fields parameter works like printRecord()'s.
+// The form inputs' name attributes will have the format
+// '$recordName[field_key_here]', which PHP will parse into an associative
+// array when submitted, so it's possible to have several records in a single
+// form.
+function printRecordForm(array /*<array>*/ $fields, string $recordName): void {
+    echo '<table>';
+
+    echo '<tbody>';
+    foreach ($fields as $fieldKey => $fieldInfo) {
+        $fieldName = (($fieldInfo['extra'] ?? FALSE) === TRUE)
+                   ? $recordName . '[extra][' . $fieldKey . ']'
+                   : $recordName . '[' . $fieldKey . ']';
+        echo '<tr>';
+        echo '<th><label for="', htmlspecialchars($fieldName), '">', htmlspecialchars($fieldInfo['name']), '</label></th>';
+        printFormCell($fieldKey, $fieldInfo, $fieldName);
+        echo '</tr>';
+    }
+    echo '</tbody>';
+
+    echo '</table>';
+}

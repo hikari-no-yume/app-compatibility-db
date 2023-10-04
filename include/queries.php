@@ -109,6 +109,18 @@ function printApp(array $appInfo): void {
     printRecord($fields, $appInfo);
 }
 
+function printAppForm(): void {
+    $fields = [
+        'name' => [
+            'name' => 'App name',
+        ]
+    ];
+    $fields += convertExtraFieldInfo(APP_EXTRA_FIELDS, FALSE);
+    $fields += convertExtraFieldInfo(APP_EXTRA_FIELDS, TRUE);
+
+    printRecordForm($fields, 'app');
+}
+
 // Returns NULL if the version isn't found.
 function getVersion(int $id): ?array {
     $rows = query('
@@ -191,6 +203,18 @@ function listVersionsForApp(int $appId): void {
     printTable($columns, $rows);
 }
 
+function printVersionForm(): void {
+    $fields = [
+        'name' => [
+            'name' => 'Version name',
+        ]
+    ];
+    $fields += convertExtraFieldInfo(VERSION_EXTRA_FIELDS, FALSE);
+    $fields += convertExtraFieldInfo(VERSION_EXTRA_FIELDS, TRUE);
+
+    printRecordForm($fields, 'version');
+}
+
 function listReportsForApp(int $appId): void {
     $rows = query('
         SELECT
@@ -230,4 +254,17 @@ function listReportsForApp(int $appId): void {
     $columns += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, TRUE);
 
     printTable($columns, $rows);
+}
+
+function printReportForm(): void {
+    $fields = convertExtraFieldInfo(REPORT_EXTRA_FIELDS, FALSE);
+    $fields += [
+        'rating' => [
+            'name' => 'Rating',
+            'stars' => TRUE,
+        ],
+    ];
+    $fields += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, TRUE);
+
+    printRecordForm($fields, 'report');
 }
