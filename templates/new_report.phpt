@@ -76,6 +76,8 @@ require 'base.phpt';
 <li>By submitting a contribution, you license it under the terms of <a href="<?=htmlspecialchars(SITE_CONTENT_LICENSE_URL)?>"><?=htmlspecialchars(SITE_CONTENT_LICENSE_NAME)?></a>.
 </ul>
 
+<p><?=htmlspecialchars(GENERAL_GUIDANCE)?></p>
+
 <form action=/reports/new method=post>
 <fieldset>
 <legend>New compatibility report</legend>
@@ -102,7 +104,8 @@ require 'base.phpt';
 </label>
 <fieldset>
 <legend>New app</legend>
-Before submitting a report for a new app, <strong>please check the <a href=/apps>list of existing apps</a>.</strong><br><br>
+<p>Before submitting a report for a new app, <strong>please check the <a href=/apps>list of existing apps</a>.</strong></p>
+<p><?=htmlspecialchars(APP_GUIDANCE)?></p>
 <?php printAppForm(); ?>
 </fieldset>
 <?php endif; ?>
@@ -132,8 +135,9 @@ Before submitting a report for a new app, <strong>please check the <a href=/apps
 <fieldset>
 <legend>New version</legend>
 <?php if ($appInfo !== NULL): ?>
-Before submitting a report for a new version, <strong>please check the <a href="/apps/<?=htmlspecialchars((string)$appId)?>">list of existing versions</a>.</strong><br><br>
+<p>Before submitting a report for a new version, <strong>please check the <a href="/apps/<?=htmlspecialchars((string)$appId)?>">list of existing versions</a>.</strong></p>
 <?php endif; ?>
+<p><?=htmlspecialchars(VERSION_GUIDANCE)?></p>
 <?php printVersionForm(); ?>
 </fieldset>
 <?php endif; ?>
@@ -142,6 +146,7 @@ Before submitting a report for a new version, <strong>please check the <a href="
 
 <fieldset>
 <legend>Report</legend>
+<p><?=htmlspecialchars(REPORT_GUIDANCE)?></p>
 <?php printReportForm(); ?>
 </fieldset>
 

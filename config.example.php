@@ -44,6 +44,10 @@ const RATINGS = [
     ],
 ];
 
+// Plain text shown when submitting a new app, report or version. There are also
+// specific texts for each of those, so only put general stuff here.
+const GENERAL_GUIDANCE = "Do not link to pirated content in your submission.";
+
 // Additional fields are stored in the JSON blob columns in the DB.
 // Currently these can only be plain-text, single-line fields.
 //
@@ -76,24 +80,40 @@ const RATINGS = [
 
 // Additional fields for apps
 const APP_EXTRA_FIELDS = [
+    'developer_publisher' => [
+        'name' => 'Developer/Publisher',
+    ],
     'release_year' => [
         'name' => 'Release year',
     ],
 ];
 
+// Plain text shown when submitting a new app. This might be used to explain,
+// for example, how the name field should be used.
+const APP_GUIDANCE = "";
+
 // Additional fields for versions
 const VERSION_EXTRA_FIELDS = [];
+
+// Plain text shown when submitting a new version.
+const VERSION_GUIDANCE = "";
 
 // Additional fields for reports
 const REPORT_EXTRA_FIELDS = [
     'operating_system' => [
         'name' => 'Operating system',
     ],
+    'gpu' => [
+        'name' => 'GPU',
+    ],
     'remarks' => [
         'name' => 'Remarks',
         'at_end' => TRUE,
     ],
 ];
+
+// Plain text shown when submitting a new report.
+const REPORT_GUIDANCE = "";
 
 // GitHub API keys for authentication.
 // Register the app at https://github.com/settings/applications/new.
