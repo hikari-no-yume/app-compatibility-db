@@ -24,7 +24,7 @@ echo htmlspecialchars(SITE_NAME);
 <?php if (empty($doNotShowSignInStatus)): ?>
 <div id=sign-in-status-box>
 <?php if ($session !== NULL): ?>
-Signed in as: @<?=htmlspecialchars(explode(':', $session['username'])[1])?>
+Signed in as: <?=formatExternalUsername($session['external_username'])?>
 <form method=post action=/signout>
 <input type=submit value="Sign out">
 </form>

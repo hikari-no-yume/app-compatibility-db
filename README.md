@@ -19,7 +19,7 @@ Various features:
 
 TODO:
 
-* Submitting new items
+* Screenshot uploads
 * Moderation
 * License (probably will be MPL-2.0)
 * Example server configuration

@@ -13,14 +13,13 @@ $userInfo = getGitHubUserInfo($oauthAccessToken);
 // WARNING: If you want to collect more pieces of user information than this,
 //          or change the purposes that this data is used for, you must update
 //          templates/signin.phpt and your privacy policy.
-$username = 'github:' . $userInfo->login;
-$userId = 'github:' . $userInfo->id;
-
-// TODO: Update username in database (if already present).
+$externalUserId = 'github:' . $userInfo->id;
+$externalUsername = 'github:' . $userInfo->login;
 
 setSession([
-    'username' => $username,
-    'user_id' => $userId,
+    'external_user_id' => $externalUserId,
+    'external_username' => $externalUsername,
 ]);
+updateUsernameForUser($externalUserId, $externalUsername);
 
 redirect('/');

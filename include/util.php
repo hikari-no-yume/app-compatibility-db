@@ -138,6 +138,12 @@ function validateExtraFields(array /*<array>*/ $extraFields, array $extraInput):
     return TRUE;
 }
 
+function formatExternalUsername(string $externalUsername) {
+    $username = explode(':', $externalUsername)[1];
+    $userUrl = 'https://github.com/' . $username;
+    return '<a href="' . htmlspecialchars($userUrl) . '">@' . htmlspecialchars($username) . '</a>';
+}
+
 // Helper function for printTable() and printRecord()
 function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<array>*/ $columnInfo): void {
     $cell = (($columnInfo['extra'] ?? FALSE) === TRUE)
@@ -158,6 +164,8 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
     } else if (isset($columnInfo['link'])) {
         [$linkUrlPrefix, $linkIdColumn] = $columnInfo['link'];
         $cellContent = '<a href="' . htmlspecialchars($linkUrlPrefix . $row[$linkIdColumn]) . '">' . $cellContent . '</a>';
+    } else if (isset($columnInfo['external_username'])) {
+        $cellContent = formatExternalUsername($cell);
     } else if (isset($columnInfo['button'])) {
         $buttonInfo = $columnInfo['button'];
         $cellContent = '<form action="' . htmlspecialchars($buttonInfo['action']) . '" method="' . htmlspecialchars($buttonInfo['method']) . '">';

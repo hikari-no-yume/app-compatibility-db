@@ -76,9 +76,14 @@ function listApps(): void {
 function getApp(int $id): ?array {
     $rows = query('
         SELECT
-            *
+            *,
+            users.external_username AS created_by_username
         FROM
             apps
+        LEFT JOIN
+                users
+            ON
+                users.user_id = apps.created_by
         WHERE
             app_id = :app_id
         ;
@@ -102,8 +107,12 @@ function printApp(array $appInfo): void {
     $fields += convertExtraFieldInfo(APP_EXTRA_FIELDS, FALSE);
     $fields += [
         'created' => [
-            'name' => 'Created',
+            'name' => 'First reported',
             'datetime' => TRUE,
+        ],
+        'created_by_username' => [
+            'name' => 'First reported by',
+            'external_username' => TRUE,
         ],
     ];
     $fields += convertExtraFieldInfo(APP_EXTRA_FIELDS, TRUE);
@@ -128,6 +137,11 @@ function printAppForm(): void {
 // The result is a the ID of the new app, or NULL if the input is invalid
 // in some way.
 function createApp(array $app): ?int {
+    $createdBy = $app['created_by'] ?? NULL;
+    if (!is_int($createdBy)) {
+        return NULL;
+    }
+
     $name = $app['name'] ?? NULL;
     if (!is_string($name) || $name === "") {
         return NULL;
@@ -146,12 +160,14 @@ function createApp(array $app): ?int {
         INSERT INTO
             apps(
                 created,
+                created_by,
                 name,
                 extra
             )
         VALUES
             (
                 datetime(),
+                :created_by,
                 :name,
                 :extra
             )
@@ -159,6 +175,7 @@ function createApp(array $app): ?int {
             app_id
         ;
     ', [
+        ':created_by' => $createdBy,
         ':name' => $name,
         ':extra' => $extra,
     ]);
@@ -191,6 +208,7 @@ function listVersionsForApp(int $appId): void {
             name,
             report_summaries.rating AS best_rating,
             COALESCE(report_summaries.last_updated, versions.created) AS last_updated,
+            users.external_username AS created_by_username,
             extra
         FROM
             versions
@@ -209,6 +227,10 @@ function listVersionsForApp(int $appId): void {
                 report_summaries
             ON
                 versions.version_id = report_summaries.version_id
+        LEFT JOIN
+                users
+            ON
+                users.user_id = versions.created_by
         WHERE
             app_id = :app_id
         ORDER BY
@@ -230,6 +252,10 @@ function listVersionsForApp(int $appId): void {
         'last_updated' => [
             'name' => 'Last updated',
             'datetime' => TRUE,
+        ],
+        'created_by_username' => [
+            'name' => 'First reported by',
+            'external_username' => TRUE,
         ],
     ];
     $columns += convertExtraFieldInfo(VERSION_EXTRA_FIELDS, TRUE);
@@ -271,6 +297,11 @@ function createVersion(array $version): ?int {
         return NULL;
     }
 
+    $createdBy = $version['created_by'] ?? NULL;
+    if (!is_int($createdBy)) {
+        return NULL;
+    }
+
     $name = $version['name'] ?? NULL;
     if (!is_string($name) || $name === "") {
         return NULL;
@@ -290,6 +321,7 @@ function createVersion(array $version): ?int {
             versions(
                 app_id,
                 created,
+                created_by,
                 name,
                 extra
             )
@@ -297,6 +329,7 @@ function createVersion(array $version): ?int {
             (
                 :app_id,
                 datetime(),
+                :created_by,
                 :name,
                 :extra
             )
@@ -305,6 +338,7 @@ function createVersion(array $version): ?int {
         ;
     ', [
         ':app_id' => $appId,
+        ':created_by' => $createdBy,
         ':name' => $name,
         ':extra' => $extra,
     ]);
@@ -317,6 +351,7 @@ function listReportsForApp(int $appId): void {
             versions.name AS version_name,
             reports.rating AS rating,
             reports.created AS created,
+            users.external_username AS created_by_username,
             reports.extra AS extra
         FROM
             reports
@@ -324,6 +359,10 @@ function listReportsForApp(int $appId): void {
                 versions
             ON
                 reports.version_id = versions.version_id
+        LEFT JOIN
+                users
+            ON
+                users.user_id = reports.created_by
         WHERE
             app_id = :app_id
         ORDER BY
@@ -343,8 +382,12 @@ function listReportsForApp(int $appId): void {
             'rating' => TRUE,
         ],
         'created' => [
-            'name' => 'Created',
+            'name' => 'Reported',
             'datetime' => TRUE,
+        ],
+        'created_by_username' => [
+            'name' => 'Reported by',
+            'external_username' => TRUE,
         ],
     ];
     $columns += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, TRUE);
@@ -370,6 +413,11 @@ function printReportForm(): void {
 // The result is a the ID of the new report, or NULL if the input is invalid
 // in some way.
 function createReport(array $report): ?int {
+    $createdBy = $report['created_by'] ?? NULL;
+    if (!is_int($createdBy)) {
+        return NULL;
+    }
+
     $rating = $report['rating'] ?? NULL;
     if (!is_int($rating) || $rating < 1 || $rating > 5) {
         return NULL;
@@ -394,6 +442,7 @@ function createReport(array $report): ?int {
             reports(
                 version_id,
                 created,
+                created_by,
                 rating,
                 extra
             )
@@ -401,6 +450,7 @@ function createReport(array $report): ?int {
             (
                 :version_id,
                 datetime(),
+                :created_by,
                 :rating,
                 :extra
             )
@@ -409,8 +459,78 @@ function createReport(array $report): ?int {
         ;
     ', [
         ':version_id' => $versionId,
+        ':created_by' => $createdBy,
         ':rating' => $rating,
         ':extra' => $extra,
     ]);
     return $rows[0]['report_id'];
+}
+
+// Register the (external user ID, external username) pair in the database, if
+// it doesn't already exist, and return the internal user ID. Note that the
+// external user ID and username must be prefixed with the service they're from.
+//
+// This should only be called as part of a transaction that adds some other
+// record referencing the user ID, so that users' identities are not tracked
+// unless they have chosen to do submit something, at which point they are
+// warned of the tracking. (See templates/new_report.phpt.)
+function createOrGetUserId(string $externalUserId, string $externalUsername): int {
+    $rows = query('
+        SELECT
+            user_id
+        FROM
+            users
+        WHERE
+            external_user_id = :external_user_id
+        ;
+    ', [':external_user_id' => $externalUserId]);
+
+    if ($rows !== []) {
+        return $rows[0]['user_id'];
+    }
+
+    $rows = query('
+        INSERT INTO
+            users(
+                external_user_id,
+                external_username
+            )
+        VALUES
+            (
+                :external_user_id,
+                :external_username
+            )
+        RETURNING
+            user_id
+        ;
+    ', [
+        ':external_user_id' => $externalUserId,
+        ':external_username' => $externalUsername
+    ]);
+    return $rows[0]['user_id'];
+}
+
+// If there is an external username associated with this external user ID in the
+// database, update the username. Otherwise, do nothing. Note that the external
+// user ID and username must be prefixed with the service they're from.
+//
+// This should be done when the user logs in, and they need to be informed of
+// this consequence before logging in (see templates/new_report.phpt).
+// This begins and ends a transaction!
+function updateUsernameForUser(string $externalUserId, string $externalUsername): void {
+    beginTransaction();
+    query('
+        UPDATE
+            users
+        SET
+            external_username = :external_username
+        WHERE
+            external_user_id = :external_user_id AND
+            external_username <> :external_username
+        ;
+    ', [
+        ':external_user_id' => $externalUserId,
+        ':external_username' => $externalUsername
+    ]);
+    commitTransaction();
 }

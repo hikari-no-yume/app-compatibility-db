@@ -26,6 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $success = FALSE;
 
     try {
+        $userId = createOrGetUserId($session['external_user_id'], $session['external_username']);
+
         $app = $_POST['app'] ?? NULL;
         if (is_string($app)) {
             // Existing app.
@@ -37,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else if (is_array($app)) {
             // New app.
+            $app['created_by'] = $userId;
             $appId = createApp($app);
             if ($appId === NULL) {
                 exit400();
@@ -55,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else if (is_array($version)) {
             // New version.
             $version['app_id'] = $appId;
+            $version['created_by'] = $userId;
             $versionId = createVersion($version);
             if ($versionId === NULL) {
                 exit400();
@@ -68,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // New report.
             $report['version_id'] = $versionId;
             $report['rating'] = (int)($report['rating'] ?? 0);
+            $report['created_by'] = $userId;
             $reportId = createReport($report);
             if ($reportId === NULL) {
                 exit400();
