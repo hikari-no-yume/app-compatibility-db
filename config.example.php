@@ -107,9 +107,11 @@ const VERSION_GUIDANCE = "";
 const REPORT_EXTRA_FIELDS = [
     'operating_system' => [
         'name' => 'Operating system',
+        'required' => TRUE,
     ],
     'gpu' => [
         'name' => 'GPU',
+        'required' => TRUE,
     ],
     'remarks' => [
         'name' => 'Remarks',
