@@ -160,7 +160,7 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
         $rfc3339DateTime = $date . 'T' . $time . 'Z';
         $cellContent = '<time datetime="' . $rfc3339DateTime . '">' . $cellContent . '</time>';
     } else if (($columnInfo['rating'] ?? FALSE) === TRUE) {
-        $cellContent = htmlspecialchars(RATINGS[$cell]['symbol']);
+        $cellContent = htmlspecialchars(RATINGS[$cell]['symbol'] ?? '');
     } else if (isset($columnInfo['link'])) {
         [$linkUrlPrefix, $linkIdColumn] = $columnInfo['link'];
         $cellContent = '<a href="' . htmlspecialchars($linkUrlPrefix . $row[$linkIdColumn]) . '">' . $cellContent . '</a>';
@@ -203,6 +203,8 @@ function printFormCell(string $fieldKey, array /*<array>*/ $fieldInfo, string $f
 // - $rows provides the data for each row as an associative array, with the keys
 //   being a subset of the keys in $columns.
 // The key 'extra' in a row is always treated as a JSON object.
+// The key 'unapproved' is also special. If it is truthy, the row is tagged with
+// the 'unapproved' CSS class.
 function printTable(array /*<array>*/ $columns, array /*<array>*/ $rows): void {
     echo '<table>';
 
@@ -217,7 +219,11 @@ function printTable(array /*<array>*/ $columns, array /*<array>*/ $rows): void {
     echo '<tbody>';
     foreach ($rows as $row) {
         $rowExtra = json_decode($row['extra'] ?? '{}');
-        echo '<tr>';
+        if ((bool)($row['unapproved'] ?? FALSE)) {
+            echo '<tr class=unapproved>';
+        } else {
+            echo '<tr>';
+        }
         foreach ($columns as $columnKey => $columnInfo) {
             printCell($row, $rowExtra, $columnKey, $columnInfo);
         }
@@ -233,7 +239,11 @@ function printTable(array /*<array>*/ $columns, array /*<array>*/ $rows): void {
 // - $fields has the same format as $columns
 // - $record has the same format as $rows[0]
 function printRecord(array /*<array>*/ $fields, array $record): void {
-    echo '<table>';
+    if ((bool)($record['unapproved'] ?? FALSE)) {
+        echo '<table class=unapproved>';
+    } else {
+        echo '<table>';
+    }
 
     echo '<tbody>';
     foreach ($fields as $fieldKey => $fieldInfo) {

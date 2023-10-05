@@ -4,6 +4,11 @@ namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
 $session = getSession();
 
+// Never show unapproved content publicly.
+if (($showUnapproved ?? FALSE) == TRUE && $session === NULL) {
+    show404();
+}
+
 ?>
 <!doctype html>
 <meta charset=utf-8>
@@ -20,6 +25,12 @@ echo htmlspecialchars(SITE_NAME);
 <script src=/script.js></script>
 
 <h1><?=htmlspecialchars(SITE_NAME)?></h1>
+
+<?php if (($showUnapproved ?? FALSE) === TRUE): ?>
+<div class=unapproved>
+⚠️  Some content on this page (shown with a grey background) is not yet approved by a moderator.
+</div>
+<?php endif; ?>
 
 <?php if (empty($doNotShowSignInStatus)): ?>
 <div id=sign-in-status-box>

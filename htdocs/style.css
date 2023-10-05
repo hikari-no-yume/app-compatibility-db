@@ -11,6 +11,21 @@ html {
     margin-bottom: 1em;
 }
 
+.unapproved {
+    background: grey;
+    color: white;
+}
+div.unapproved {
+    margin: 1em 0;
+    padding: 0.5em;
+}
+.unapproved a {
+    color: skyblue;
+}
+.unapproved a:visited {
+    color: pink;
+}
+
 th {
     text-align: left;
 }

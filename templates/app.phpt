@@ -2,9 +2,11 @@
 
 namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
+$showUnapproved = (($_GET['show_unapproved'] ?? '0') === '1');
+
 $appInfo = getApp($appId);
 
-if ($appInfo == NULL) {
+if ($appInfo == NULL || (!$showUnapproved && $appInfo['approved'] === NULL)) {
     show404();
 }
 
@@ -20,7 +22,7 @@ require 'base.phpt';
 
 <h3>Versions</h3>
 
-<?php listVersionsForApp($appId); ?>
+<?php listVersionsForApp($appId, $showUnapproved); ?>
 <br>
 <form action=/reports/new method=get>
 <input type=hidden name=app value="<?=htmlspecialchars((string)$appId)?>">
@@ -29,7 +31,7 @@ require 'base.phpt';
 
 <h3>Reports</h3>
 
-<?php listReportsForApp($appId); ?>
+<?php listReportsForApp($appId, $showUnapproved); ?>
 
 <h2>Legend</h2>
 <?php printRatingsLegend(); ?>

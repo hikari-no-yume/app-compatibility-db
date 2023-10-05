@@ -5,12 +5,13 @@ namespace hikari_no_yume\touchHLE\app_compatibility_db;
 // Functions for querying and displaying particular types of data.
 // Many of these will only be used on a single page of the site.
 
-function listApps(): void {
+function listApps(bool $showUnapproved): void {
     $rows = query('
         SELECT
             apps.app_id AS app_id,
             name,
             COALESCE(version_summaries.last_updated, apps.created) AS last_updated,
+            (approved IS NULL) AS unapproved,
             version_summaries.best_rating AS best_rating,
             extra
         FROM
@@ -31,6 +32,8 @@ function listApps(): void {
                         version_id
                     FROM
                         reports
+                    WHERE
+                        (:show_unapproved OR approved IS NOT NULL)
                     GROUP BY
                         version_id
                 )
@@ -38,6 +41,8 @@ function listApps(): void {
                     report_summaries
                 ON
                     versions.version_id = report_summaries.version_id
+                WHERE
+                    (:show_unapproved OR approved IS NOT NULL)
                 GROUP BY
                     app_id
             )
@@ -45,10 +50,12 @@ function listApps(): void {
                 version_summaries
             ON
                 apps.app_id = version_summaries.app_id
+        WHERE
+            :show_unapproved OR approved IS NOT NULL
         ORDER BY
             name ASC
         ;
-    ');
+    ', [':show_unapproved' => $showUnapproved]);
 
     $columns = [
         'name' => [
@@ -77,7 +84,8 @@ function getApp(int $id): ?array {
     $rows = query('
         SELECT
             *,
-            users.external_username AS created_by_username
+            users.external_username AS created_by_username,
+            (approved IS NULL) AS unapproved
         FROM
             apps
         LEFT JOIN
@@ -136,6 +144,7 @@ function printAppForm(): void {
 // It is recommended to call this as part of a transaction.
 // The result is a the ID of the new app, or NULL if the input is invalid
 // in some way.
+// The new app has unapproved state, awaiting moderation.
 function createApp(array $app): ?int {
     $createdBy = $app['created_by'] ?? NULL;
     if (!is_int($createdBy)) {
@@ -201,7 +210,7 @@ function getVersion(int $id): ?array {
     }
 }
 
-function listVersionsForApp(int $appId): void {
+function listVersionsForApp(int $appId, bool $showUnapproved): void {
     $rows = query('
         SELECT
             versions.version_id AS version_id,
@@ -209,6 +218,7 @@ function listVersionsForApp(int $appId): void {
             report_summaries.rating AS best_rating,
             COALESCE(report_summaries.last_updated, versions.created) AS last_updated,
             users.external_username AS created_by_username,
+            (approved IS NULL) AS unapproved,
             extra
         FROM
             versions
@@ -220,6 +230,8 @@ function listVersionsForApp(int $appId): void {
                     version_id
                 FROM
                     reports
+                WHERE
+                    :show_unapproved OR approved IS NOT NULL
                 GROUP BY
                     version_id
             )
@@ -232,11 +244,15 @@ function listVersionsForApp(int $appId): void {
             ON
                 users.user_id = versions.created_by
         WHERE
-            app_id = :app_id
+            app_id = :app_id AND
+            (:show_unapproved OR approved IS NOT NULL)
         ORDER BY
             name ASC, rating DESC
         ;
-    ', [':app_id' => $appId]);
+    ', [
+        ':app_id' => $appId,
+        ':show_unapproved' => $showUnapproved,
+    ]);
 
     $columns = [
         'name' => [
@@ -291,6 +307,7 @@ function printVersionForm(): void {
 // It is recommended to call this as part of a transaction.
 // The result is a the ID of the new version, or NULL if the input is invalid
 // in some way.
+// The new version has unapproved state, awaiting moderation.
 function createVersion(array $version): ?int {
     $appId = $version['app_id'] ?? NULL;
     if (!is_int($appId)) {
@@ -345,13 +362,14 @@ function createVersion(array $version): ?int {
     return $rows[0]['version_id'];
 }
 
-function listReportsForApp(int $appId): void {
+function listReportsForApp(int $appId, bool $showUnapproved): void {
     $rows = query('
         SELECT
             versions.name AS version_name,
             reports.rating AS rating,
             reports.created AS created,
             users.external_username AS created_by_username,
+            (reports.approved IS NULL) AS unapproved,
             reports.extra AS extra
         FROM
             reports
@@ -364,11 +382,15 @@ function listReportsForApp(int $appId): void {
             ON
                 users.user_id = reports.created_by
         WHERE
-            app_id = :app_id
+            app_id = :app_id AND
+            (:show_unapproved OR reports.approved IS NOT NULL)
         ORDER BY
             reports.created DESC
         ;
-    ', [':app_id' => $appId]);
+    ', [
+        ':app_id' => $appId,
+        ':show_unapproved' => $showUnapproved,
+    ]);
 
     $columns = [
         'version_name' => [
@@ -412,6 +434,7 @@ function printReportForm(): void {
 // It is recommended to call this as part of a transaction.
 // The result is a the ID of the new report, or NULL if the input is invalid
 // in some way.
+// The new report has unapproved state, awaiting moderation.
 function createReport(array $report): ?int {
     $createdBy = $report['created_by'] ?? NULL;
     if (!is_int($createdBy)) {

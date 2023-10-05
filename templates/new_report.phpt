@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    redirect('/apps/' . $appId);
+    redirect('/apps/' . $appId . '?show_unapproved=1');
     exit;
 }
 
