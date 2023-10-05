@@ -179,6 +179,7 @@ function printFormCell(string $fieldKey, array /*<array>*/ $fieldInfo, string $f
     }
     if (($fieldInfo['rating'] ?? FALSE) === TRUE) {
         echo '<select ', $common, '>';
+        echo '<option value="" selected>(please select)</option>';
         for ($i = 1; $i <= 5; $i++) {
             echo '<option value=', $i, '> ', $i, ' - ', htmlspecialchars(RATINGS[$i]['symbol']), ' - ', htmlspecialchars(RATINGS[$i]['description']), '</option>';
         }

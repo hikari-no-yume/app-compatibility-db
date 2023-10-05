@@ -354,6 +354,7 @@ function printReportForm(): void {
         'rating' => [
             'name' => 'Rating',
             'rating' => TRUE,
+            'required' => TRUE,
         ],
     ];
     $fields += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, TRUE);
