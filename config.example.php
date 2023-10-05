@@ -1,7 +1,7 @@
 <?php
 
 // Human-readable name of the site, as plain text
-const SITE_NAME = 'App compatibility database';
+const SITE_NAME = 'Example Emulator app compatibility database';
 
 // URL of the privacy policy of the site (may be external)
 // Make sure this doesn't contradict templates/signin.phpt
