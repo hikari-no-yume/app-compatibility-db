@@ -18,9 +18,74 @@ if ($session === NULL) {
 // - /reports/new?version=123   => Existing app, existing version, new report
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    echo "TODO<br><pre>";
-    var_dump($_POST);
-    echo "</pre>";
+    // Transactions are used to make this easier to follow: it's okay if we've
+    // inserted one object before we discover a problem with the next, it can
+    // be rolled back.
+
+    beginTransaction();
+    $success = FALSE;
+
+    try {
+        $app = $_POST['app'] ?? NULL;
+        if (is_string($app)) {
+            // Existing app.
+            $appId = (int)$app;
+            if (getApp($appId) === NULL) {
+                // It's unlikely this would happen accidentally, so there's no
+                // need for a pretty error page.
+                exit400();
+            }
+        } else if (is_array($app)) {
+            // New app.
+            $appId = createApp($app);
+            if ($appId === NULL) {
+                exit400();
+            }
+        } else {
+            exit400();
+        }
+
+        $version = $_POST['version'] ?? NULL;
+        if (is_string($version)) {
+            // Existing version.
+            $versionId = (int)$version;
+            if (getVersion($versionId) === NULL) {
+                exit400();
+            }
+        } else if (is_array($version)) {
+            // New version.
+            $version['app_id'] = $appId;
+            $versionId = createVersion($version);
+            if ($versionId === NULL) {
+                exit400();
+            }
+        } else {
+            exit400();
+        }
+
+        $report = $_POST['report'] ?? NULL;
+        if (is_array($report)) {
+            // New report.
+            $report['version_id'] = $versionId;
+            $report['rating'] = (int)($report['rating'] ?? 0);
+            $reportId = createReport($report);
+            if ($reportId === NULL) {
+                exit400();
+            }
+        } else {
+            exit400();
+        }
+
+        $success = TRUE;
+    } finally {
+        if ($success) {
+            commitTransaction();
+        } else {
+            rollbackTransaction();
+        }
+    }
+
+    redirect('/apps/' . $appId);
     exit;
 }
 

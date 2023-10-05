@@ -121,6 +121,47 @@ function printAppForm(): void {
     printRecordForm($fields, 'app');
 }
 
+// It is recommended to call this as part of a transaction.
+// The result is a the ID of the new app, or NULL if the input is invalid
+// in some way.
+function createApp(array $app): ?int {
+    $name = $app['name'] ?? NULL;
+    if (!is_string($name)) {
+        return NULL;
+    }
+
+    $extra = $app['extra'] ?? [];
+    if (!is_array($extra)) {
+        return NULL;
+    }
+    if (!validateExtraFields(APP_EXTRA_FIELDS, $extra)) {
+        return NULL;
+    }
+    $extra = json_encode($extra);
+
+    $rows = query('
+        INSERT INTO
+            apps(
+                created,
+                name,
+                extra
+            )
+        VALUES
+            (
+                datetime(),
+                :name,
+                :extra
+            )
+        RETURNING
+            app_id
+        ;
+    ', [
+        ':name' => $name,
+        ':extra' => $extra,
+    ]);
+    return $rows[0]['app_id'];
+}
+
 // Returns NULL if the version isn't found.
 function getVersion(int $id): ?array {
     $rows = query('
@@ -215,6 +256,55 @@ function printVersionForm(): void {
     printRecordForm($fields, 'version');
 }
 
+// It is recommended to call this as part of a transaction.
+// The result is a the ID of the new version, or NULL if the input is invalid
+// in some way.
+function createVersion(array $version): ?int {
+    $appId = $version['app_id'] ?? NULL;
+    if (!is_int($appId)) {
+        return NULL;
+    }
+
+    $name = $version['name'] ?? NULL;
+    if (!is_string($name)) {
+        return NULL;
+    }
+
+    $extra = $version['extra'] ?? [];
+    if (!is_array($extra)) {
+        return NULL;
+    }
+    if (!validateExtraFields(VERSION_EXTRA_FIELDS, $extra)) {
+        return NULL;
+    }
+    $extra = json_encode($extra);
+
+    $rows = query('
+        INSERT INTO
+            versions(
+                app_id,
+                created,
+                name,
+                extra
+            )
+        VALUES
+            (
+                :app_id,
+                datetime(),
+                :name,
+                :extra
+            )
+        RETURNING
+            version_id
+        ;
+    ', [
+        ':app_id' => $appId,
+        ':name' => $name,
+        ':extra' => $extra,
+    ]);
+    return $rows[0]['version_id'];
+}
+
 function listReportsForApp(int $appId): void {
     $rows = query('
         SELECT
@@ -267,4 +357,53 @@ function printReportForm(): void {
     $fields += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, TRUE);
 
     printRecordForm($fields, 'report');
+}
+
+// It is recommended to call this as part of a transaction.
+// The result is a the ID of the new report, or NULL if the input is invalid
+// in some way.
+function createReport(array $report): ?int {
+    $rating = $report['rating'] ?? NULL;
+    if (!is_int($rating) || $rating < 1 || $rating > 5) {
+        return NULL;
+    }
+
+    $versionId = $report['version_id'] ?? NULL;
+    if (!is_int($versionId)) {
+        return NULL;
+    }
+
+    $extra = $report['extra'] ?? [];
+    if (!is_array($extra)) {
+        return NULL;
+    }
+    if (!validateExtraFields(REPORT_EXTRA_FIELDS, $extra)) {
+        return NULL;
+    }
+    $extra = json_encode($extra);
+
+    $rows = query('
+        INSERT INTO
+            reports(
+                version_id,
+                created,
+                rating,
+                extra
+            )
+        VALUES
+            (
+                :version_id,
+                datetime(),
+                :rating,
+                :extra
+            )
+        RETURNING
+            report_id
+        ;
+    ', [
+        ':version_id' => $versionId,
+        ':rating' => $rating,
+        ':extra' => $extra,
+    ]);
+    return $rows[0]['report_id'];
 }

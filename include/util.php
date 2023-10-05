@@ -22,6 +22,19 @@ function query(string $query, array $args = []): array {
     return $stmt->fetchAll(\PDO::FETCH_ASSOC);
 }
 
+function beginTransaction(): void {
+    global $db;
+    $db->beginTransaction();
+}
+function commitTransaction(): void {
+    global $db;
+    $db->commit();
+}
+function rollbackTransaction(): void {
+    global $db;
+    $db->rollBack();
+}
+
 function redirect(string $url): void {
     header('HTTP/1.1 303 See Other');
     header('Location: ' . $url);
@@ -31,6 +44,11 @@ function redirect(string $url): void {
 function show404(): void {
     header("HTTP/1.1 404 Not Found");
     require '../templates/404.phpt';
+    exit;
+}
+
+function exit400(): void {
+    header('HTTP/1.1 400 Bad Request');
     exit;
 }
 
@@ -86,7 +104,7 @@ function destroySession(): void {
 }
 
 // Convert extra fields defined in config.php to column/field lists intended for
-// printTable() or printRecord(). Filters by 'at_end'.
+// printTable(), printRecord() or printRecordForm(). Filters by 'at_end'.
 function convertExtraFieldInfo(array /*<array>*/ $extraFields, bool $atEnd): array {
     $columns = [];
     foreach ($extraFields as $fieldKey => $fieldInfo) {
@@ -99,6 +117,21 @@ function convertExtraFieldInfo(array /*<array>*/ $extraFields, bool $atEnd): arr
         ];
     }
     return $columns;
+}
+
+// Validate extra field input (e.g. from $_POST) against extra fields lists.
+// The input should _not_ have been converted with convertExtraFieldInfo().
+function validateExtraFields(array /*<array>*/ $extraFields, array $extraInput): bool {
+    foreach ($extraInput as $fieldKey => $fieldValue) {
+        $fieldInfo = $extraFields[$fieldKey] ?? NULL;
+        if ($fieldInfo === NULL) {
+            return FALSE;
+        }
+        if (!is_string($fieldValue)) {
+            return FALSE;
+        }
+    }
+    return TRUE;
 }
 
 // Helper function for printTable() and printRecord()
