@@ -37,3 +37,14 @@ fieldset > p {
 input[type=text] {
     min-width: 20em;
 }
+th > label {
+    float: left;
+}
+th > .required {
+    float: right;
+    margin-left: 0.5em;
+}
+.required {
+    color: red;
+    font-weight: normal
+}

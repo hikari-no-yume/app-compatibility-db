@@ -113,6 +113,7 @@ function printAppForm(): void {
     $fields = [
         'name' => [
             'name' => 'App name',
+            'required' => TRUE,
         ]
     ];
     $fields += convertExtraFieldInfo(APP_EXTRA_FIELDS, FALSE);
@@ -126,7 +127,7 @@ function printAppForm(): void {
 // in some way.
 function createApp(array $app): ?int {
     $name = $app['name'] ?? NULL;
-    if (!is_string($name)) {
+    if (!is_string($name) || $name === "") {
         return NULL;
     }
 
@@ -248,6 +249,7 @@ function printVersionForm(): void {
     $fields = [
         'name' => [
             'name' => 'Version name',
+            'required' => TRUE,
         ]
     ];
     $fields += convertExtraFieldInfo(VERSION_EXTRA_FIELDS, FALSE);
@@ -266,7 +268,7 @@ function createVersion(array $version): ?int {
     }
 
     $name = $version['name'] ?? NULL;
-    if (!is_string($name)) {
+    if (!is_string($name) || $name === "") {
         return NULL;
     }
 

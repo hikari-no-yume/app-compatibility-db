@@ -56,6 +56,7 @@ const GENERAL_GUIDANCE = "Do not link to pirated content in your submission.";
 //      [
 //          'key1' => [
 //              'name' => 'Human-readable name 1',
+//              'required' => TRUE,
 //          ],
 //          'key2' => [
 //              'name' => 'Human-readable name 2',
@@ -75,13 +76,17 @@ const GENERAL_GUIDANCE = "Do not link to pirated content in your submission.";
 // - If no data for a field is found in the database, it will show up as blank.
 // - If a field is removed from the list, it won't show up on the site, but its
 //   data is still in the database.
+// - 'name' is the only required key when describing a field.
 // - If 'at_end' is TRUE, the field appears after all the built-in fields.
 //   Otherwise, it appears between the name and the rating or creation date.
+// - If 'required' is TRUE, the field is marked as required and the form can't
+//   be submitted without entering something for it.
 
 // Additional fields for apps
 const APP_EXTRA_FIELDS = [
     'developer_publisher' => [
         'name' => 'Developer/Publisher',
+        'required' => TRUE,
     ],
     'release_year' => [
         'name' => 'Release year',

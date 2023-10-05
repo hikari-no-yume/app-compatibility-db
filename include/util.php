@@ -114,6 +114,7 @@ function convertExtraFieldInfo(array /*<array>*/ $extraFields, bool $atEnd): arr
         $columns[$fieldKey] = [
             "name" => $fieldInfo["name"],
             "extra" => TRUE,
+            "required" => $fieldInfo["required"] ?? FALSE,
         ];
     }
     return $columns;
@@ -128,6 +129,9 @@ function validateExtraFields(array /*<array>*/ $extraFields, array $extraInput):
             return FALSE;
         }
         if (!is_string($fieldValue)) {
+            return FALSE;
+        }
+        if (($fieldInfo['required'] ?? FALSE) === TRUE && $fieldValue === "") {
             return FALSE;
         }
     }
@@ -168,14 +172,19 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
 // Helper function for printRecordForm()
 function printFormCell(string $fieldKey, array /*<array>*/ $fieldInfo, string $fieldName): void {
     echo '<td>';
+    $common = 'name="' . htmlspecialchars($fieldName) . '"';
+    $common .= ' id="' . htmlspecialchars($fieldName) . '"';
+    if (($fieldInfo['required'] ?? FALSE) === TRUE) {
+        $common .= ' required';
+    }
     if (($fieldInfo['rating'] ?? FALSE) === TRUE) {
-        echo '<select name="', htmlspecialchars($fieldName), '" id="', htmlspecialchars($fieldName), '">';
+        echo '<select ', $common, '>';
         for ($i = 1; $i <= 5; $i++) {
             echo '<option value=', $i, '> ', $i, ' - ', htmlspecialchars(RATINGS[$i]['symbol']), ' - ', htmlspecialchars(RATINGS[$i]['description']), '</option>';
         }
         echo '</select>';
     } else {
-        echo '<input type=text name="', htmlspecialchars($fieldName), '" id="', htmlspecialchars($fieldName), '">';
+        echo '<input type=text ', $common, '>';
     }
     echo '</td>';
 }
@@ -245,7 +254,12 @@ function printRecordForm(array /*<array>*/ $fields, string $recordName): void {
                    ? $recordName . '[extra][' . $fieldKey . ']'
                    : $recordName . '[' . $fieldKey . ']';
         echo '<tr>';
-        echo '<th><label for="', htmlspecialchars($fieldName), '">', htmlspecialchars($fieldInfo['name']), '</label></th>';
+        echo '<th>';
+        echo '<label for="', htmlspecialchars($fieldName), '">', htmlspecialchars($fieldInfo['name']), '</label>';
+        if (($fieldInfo['required'] ?? FALSE) == TRUE) {
+            echo '<span class=required>*</span>';
+        }
+        echo '</th>';
         printFormCell($fieldKey, $fieldInfo, $fieldName);
         echo '</tr>';
     }

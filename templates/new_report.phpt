@@ -147,6 +147,7 @@ require 'base.phpt';
 <fieldset>
 <legend>New compatibility report</legend>
 
+<p><span class=required>*</span> indicates a required field.</p>
 <fieldset>
 <legend>App</legend>
 
