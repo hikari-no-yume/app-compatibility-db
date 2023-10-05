@@ -45,6 +45,8 @@ function listApps(): void {
                 version_summaries
             ON
                 apps.app_id = version_summaries.app_id
+        ORDER BY
+            name ASC
         ;
     ');
 
@@ -209,6 +211,8 @@ function listVersionsForApp(int $appId): void {
                 versions.version_id = report_summaries.version_id
         WHERE
             app_id = :app_id
+        ORDER BY
+            name ASC, rating DESC
         ;
     ', [':app_id' => $appId]);
 
