@@ -157,7 +157,12 @@ function formatExternalUsername(string $externalUsername) {
 }
 
 function formatButtonForm(array $buttonInfo): string {
-    $form = '<form action="' . htmlspecialchars($buttonInfo['action']) . '" method="' . htmlspecialchars($buttonInfo['method']) . '">';
+    $formParams = 'action="' . htmlspecialchars($buttonInfo['action']) . '"';
+    $formParams .= ' method="' . htmlspecialchars($buttonInfo['method']) . '"';
+    if (isset($buttonInfo['onsubmit'])) {
+        $formParams .= ' onsubmit="' . htmlspecialchars($buttonInfo['onsubmit']) . '"';
+    }
+    $form = '<form ' . $formParams . '>';
     if (isset($buttonInfo['param_name']) && isset($buttonInfo['param_value'])) {
         $form .= '<input type=hidden name="' . htmlspecialchars($buttonInfo['param_name']) . '" value="' . htmlspecialchars($buttonInfo['param_value']) . '">';
     }
@@ -175,13 +180,15 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
 
     $openingTag = '<td>';
     if (($columnInfo['datetime'] ?? FALSE) === TRUE) {
-        // SQLite uses the 'YYYY-MM-DD HH:MM:SS' format in UTC, but
-        // HTML <time>'s datetime attribute wants RFC 3339 format.
-        // Note that it also must be compatible with the JavaScript
-        // Date() constructor (see htdocs/script.js).
-        [$date, $time] = explode(' ', $cell);
-        $rfc3339DateTime = $date . 'T' . $time . 'Z';
-        $cellContent = '<time datetime="' . $rfc3339DateTime . '">' . $cellContent . '</time>';
+        if ($cell !== NULL) {
+            // SQLite uses the 'YYYY-MM-DD HH:MM:SS' format in UTC, but
+            // HTML <time>'s datetime attribute wants RFC 3339 format.
+            // Note that it also must be compatible with the JavaScript
+            // Date() constructor (see htdocs/script.js).
+            [$date, $time] = explode(' ', $cell);
+            $rfc3339DateTime = $date . 'T' . $time . 'Z';
+            $cellContent = '<time datetime="' . $rfc3339DateTime . '">' . $cellContent . '</time>';
+        }
     } else if (($columnInfo['rating'] ?? FALSE) === TRUE) {
         $cellContent = htmlspecialchars(RATINGS[$cell]['symbol'] ?? '');
     } else if (($columnInfo['unapproved_if_nonzero'] ?? FALSE) === TRUE) {
@@ -193,11 +200,23 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
         $linkUrlSuffix = $columnInfo['link'][2] ?? '';
         $cellContent = '<a href="' . htmlspecialchars($linkUrlPrefix . $row[$linkIdColumn] . $linkUrlSuffix) . '">' . $cellContent . '</a>';
     } else if (isset($columnInfo['external_username'])) {
-        $cellContent = formatExternalUsername($cell);
-    } else if (isset($columnInfo['button'])) {
-        $buttonInfo = $columnInfo['button'];
-        $buttonInfo['param_value'] = (string)$row[$buttonInfo['param_column']];
-        $cellContent = formatButtonForm($buttonInfo);
+        if ($cell !== NULL) {
+            $cellContent = formatExternalUsername($cell);
+        }
+    } else if (isset($columnInfo['buttons'])) {
+        $cellContent = '';
+        foreach ($columnInfo['buttons'] as $buttonInfo) {
+            if (isset($buttonInfo['depends_on_column']) && $row[$buttonInfo['depends_on_column']] == 0) {
+                continue;
+            }
+            if (isset($buttonInfo['param_column'])) {
+                $buttonInfo['param_value'] = (string)$row[$buttonInfo['param_column']];
+            }
+            if (isset($buttonInfo['action_column'])) {
+                $buttonInfo['action'] = $buttonInfo['action_prefix'] . (string)$row[$buttonInfo['action_column']] . ($buttonInfo['action_suffix'] ?? '');
+            }
+            $cellContent .= formatButtonForm($buttonInfo);
+        }
     }
 
     echo $openingTag, $cellContent, '</td>';

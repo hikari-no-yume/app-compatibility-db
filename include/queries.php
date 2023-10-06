@@ -148,7 +148,9 @@ function getApp(int $id): ?array {
         SELECT
             *,
             users.external_username AS created_by_username,
-            (approved IS NULL) AS unapproved
+            (approved IS NULL) AS unapproved,
+            approved,
+            (SELECT external_username FROM users WHERE user_id = apps.approved_by) AS approved_by
         FROM
             apps
         LEFT JOIN
@@ -167,8 +169,31 @@ function getApp(int $id): ?array {
     }
 }
 
+// Helper for printApp()/listVersionsForApp()/listReportsForApp()
+function moderationActionButtons(string $urlPrefix, string $idColumn, string $label): array {
+    return [
+        [
+            'action_prefix' => $urlPrefix,
+            'action_column' => $idColumn,
+            'action_suffix' => '/approve',
+            'method' => 'post',
+            'label' => '✅ Approve',
+            'onsubmit' => 'return confirm("Are you sure you want to ✅ approve this ' . $label . '?")',
+            'depends_on_column' => 'unapproved',
+        ],
+        [
+            'action_prefix' => $urlPrefix,
+            'action_column' => $idColumn,
+            'action_suffix' => '/delete',
+            'method' => 'post',
+            'label' => '🚮 Delete',
+            'onsubmit' => 'return confirm("Are you sure you want to 🚮 DELETE this ' . $label . '? This action CANNOT BE UNDONE.")',
+        ]
+    ];
+}
+
 // Input comes from getApp().
-function printApp(array $appInfo): void {
+function printApp(array $appInfo, bool $moderatorView): void {
     $fields = [
         'name' => [
             'name' => 'App name',
@@ -186,7 +211,27 @@ function printApp(array $appInfo): void {
             'external_username' => TRUE,
         ],
     ];
+    if ($moderatorView) {
+        $fields += [
+            'approved' => [
+                'name' => 'Approved',
+                'datetime' => TRUE,
+            ],
+            'approved_by' => [
+                'name' => 'Approved by',
+                'external_username' => TRUE,
+            ],
+        ];
+    }
     $fields += convertExtraFieldInfo(APP_EXTRA_FIELDS, TRUE);
+    if ($moderatorView) {
+        $fields += [
+            '_buttons' => [
+                'name' => '',
+                'buttons' => moderationActionButtons('/apps/', 'app_id', 'app'),
+            ],
+        ];
+    }
 
     printRecord($fields, $appInfo);
 }
@@ -254,6 +299,60 @@ function createApp(array $app): ?int {
     return $rows[0]['app_id'];
 }
 
+// It is recommended to call this as part of a transaction.
+function approveApp(int $appId, int $approvedByUserId): void {
+    query('
+        UPDATE
+            apps
+        SET
+            approved = datetime(),
+            approved_by = :approved_by_user_id
+        WHERE
+            app_id = :app_id AND
+            approved IS NULL
+        ;
+    ', [
+        ':app_id' => $appId,
+        ':approved_by_user_id' => $approvedByUserId,
+    ]);
+}
+
+// This must be called as part of a transaction!
+// It deletes not only the app, but also its connected versions and reports!
+// There is no audit log or undo!
+function deleteApp(int $appId): void {
+    query('
+        DELETE FROM
+            reports
+        WHERE
+            EXISTS (
+                SELECT
+                    1
+                FROM
+                    versions
+                WHERE
+                    version_id = reports.version_id AND
+                    app_id = :app_id
+            )
+        ;
+    ', [':app_id' => $appId]);
+    query('
+        DELETE FROM
+            versions
+        WHERE
+            app_id = :app_id
+        ;
+    ', [':app_id' => $appId]);
+    query('
+        DELETE FROM
+            apps
+        WHERE
+            app_id = :app_id
+        ;
+    ', [':app_id' => $appId]);
+    cleanUpUsers();
+}
+
 // Returns NULL if the version isn't found.
 function getVersion(int $id): ?array {
     $rows = query('
@@ -273,7 +372,17 @@ function getVersion(int $id): ?array {
     }
 }
 
-function listVersionsForApp(int $appId, bool $showUnapproved): void {
+function listVersionsForApp(int $appId, bool $showUnapproved, bool $moderatorView): void {
+    if ($moderatorView) {
+        $extraColumns = '
+            ,
+            approved,
+            (SELECT external_username FROM users WHERE user_id = versions.approved_by) AS approved_by
+        ';
+    } else {
+        $extraColumns = '';
+    }
+
     $rows = query('
         SELECT
             versions.version_id AS version_id,
@@ -283,6 +392,7 @@ function listVersionsForApp(int $appId, bool $showUnapproved): void {
             users.external_username AS created_by_username,
             (approved IS NULL) AS unapproved,
             extra
+            ' . $extraColumns . '
         FROM
             versions
         LEFT JOIN
@@ -337,17 +447,39 @@ function listVersionsForApp(int $appId, bool $showUnapproved): void {
             'external_username' => TRUE,
         ],
     ];
-    $columns += convertExtraFieldInfo(VERSION_EXTRA_FIELDS, TRUE);
-    $columns += [
-        '_new_report' => [
-            'name' => '',
-            'button' => [
-                'action' => '/reports/new',
-                'method' => 'get',
-                'label' => 'Submit report for this version',
-                'param_name' => 'version',
-                'param_column' => 'version_id',
+    if ($moderatorView) {
+        $columns += [
+            'approved' => [
+                'name' => 'Approved',
+                'datetime' => TRUE,
             ],
+            'approved_by' => [
+                'name' => 'Approved by',
+                'external_username' => TRUE,
+            ],
+        ];
+    }
+    $columns += convertExtraFieldInfo(VERSION_EXTRA_FIELDS, TRUE);
+
+    $buttons = [
+        [
+            'action' => '/reports/new',
+            'method' => 'get',
+            'label' => 'Submit report for this version',
+            'param_name' => 'version',
+            'param_column' => 'version_id',
+        ]
+    ];
+    if ($moderatorView) {
+        foreach (moderationActionButtons('/versions/', 'version_id', 'version') as $button) {
+            $buttons[] = $button;
+        }
+    }
+
+    $columns += [
+        '_buttons' => [
+            'name' => '',
+            'buttons' => $buttons,
         ],
     ];
 
@@ -425,7 +557,81 @@ function createVersion(array $version): ?int {
     return $rows[0]['version_id'];
 }
 
-function listReportsForApp(int $appId, bool $showUnapproved): void {
+// It is recommended to call this as part of a transaction.
+function approveVersion(int $versionId, int $approvedByUserId): void {
+    query('
+        UPDATE
+            versions
+        SET
+            approved = datetime(),
+            approved_by = :approved_by_user_id
+        WHERE
+            version_id = :version_id AND
+            approved IS NULL
+        ;
+    ', [
+        ':version_id' => $versionId,
+        ':approved_by_user_id' => $approvedByUserId,
+    ]);
+}
+
+// This must be called as part of a transaction!
+// It deletes not only the version, but also its connected reports!
+// There is no audit log or undo!
+function deleteVersion(int $versionId): void {
+    query('
+        DELETE FROM
+            reports
+        WHERE
+            version_id = :version_id
+        ;
+    ', [':version_id' => $versionId]);
+    query('
+        DELETE FROM
+            versions
+        WHERE
+            version_id = :version_id
+        ;
+    ', [':version_id' => $versionId]);
+    cleanUpUsers();
+}
+
+// Returns NULL if the report isn't found.
+function getReport(int $id): ?array {
+    $rows = query('
+        SELECT
+            *,
+            versions.app_id
+        FROM
+            reports
+        LEFT JOIN
+                versions
+            ON
+                versions.version_id = reports.version_id
+        WHERE
+            report_id = :report_id
+        ;
+    ', [':report_id' => $id]);
+
+    if ($rows === []) {
+        return NULL;
+    } else {
+        return $rows[0];
+    }
+}
+
+function listReportsForApp(int $appId, bool $showUnapproved, bool $moderatorView): void {
+    if ($moderatorView) {
+        $extraColumns = '
+            ,
+            reports.report_id AS report_id,
+            reports.approved AS approved,
+            (SELECT external_username FROM users WHERE user_id = reports.approved_by) AS approved_by
+        ';
+    } else {
+        $extraColumns = '';
+    }
+
     $rows = query('
         SELECT
             versions.name AS version_name,
@@ -434,6 +640,7 @@ function listReportsForApp(int $appId, bool $showUnapproved): void {
             users.external_username AS created_by_username,
             (reports.approved IS NULL) AS unapproved,
             reports.extra AS extra
+            ' . $extraColumns . '
         FROM
             reports
         LEFT JOIN
@@ -475,7 +682,29 @@ function listReportsForApp(int $appId, bool $showUnapproved): void {
             'external_username' => TRUE,
         ],
     ];
+    if ($moderatorView) {
+        $columns += [
+            'approved' => [
+                'name' => 'Approved',
+                'datetime' => TRUE,
+            ],
+            'approved_by' => [
+                'name' => 'Approved by',
+                'external_username' => TRUE,
+            ],
+        ];
+    }
+
     $columns += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, TRUE);
+
+    if ($moderatorView) {
+        $columns += [
+            '_buttons' => [
+                'name' => '',
+                'buttons' => moderationActionButtons('/reports/', 'report_id', 'report'),
+            ],
+        ];
+    }
 
     printTable($columns, $rows);
 }
@@ -552,6 +781,37 @@ function createReport(array $report): ?int {
     return $rows[0]['report_id'];
 }
 
+// It is recommended to call this as part of a transaction.
+function approveReport(int $reportId, int $approvedByUserId): void {
+    query('
+        UPDATE
+            reports
+        SET
+            approved = datetime(),
+            approved_by = :approved_by_user_id
+        WHERE
+            report_id = :report_id AND
+            approved IS NULL
+        ;
+    ', [
+        ':report_id' => $reportId,
+        ':approved_by_user_id' => $approvedByUserId,
+    ]);
+}
+
+// This must be called as part of a transaction!
+// There is no audit log or undo!
+function deleteReport(int $reportId): void {
+    query('
+        DELETE FROM
+            reports
+        WHERE
+            report_id = :report_id
+        ;
+    ', [':report_id' => $reportId]);
+    cleanUpUsers();
+}
+
 // Register the (external user ID, external username) pair in the database, if
 // it doesn't already exist, and return the internal user ID. Note that the
 // external user ID and username must be prefixed with the service they're from.
@@ -619,4 +879,46 @@ function updateUsernameForUser(string $externalUserId, string $externalUsername)
         ':external_username' => $externalUsername
     ]);
     commitTransaction();
+}
+
+// This must be called as part of a transaction!
+// Helper function for deleteApp(), deleteVersion() and deleteReport():
+// Remove users from the database if they're no longer referenced by anything.
+// This is in line with the principles of createOrGetUserId().
+function cleanUpUsers(): void {
+    query('
+        DELETE FROM
+            users
+        WHERE
+                (NOT EXISTS(
+                    SELECT
+                        1
+                    FROM
+                        apps
+                    WHERE
+                        created_by = users.user_id OR
+                        approved_by = users.user_id
+                ))
+            AND
+                (NOT EXISTS(
+                    SELECT
+                        1
+                    FROM
+                        versions
+                    WHERE
+                        created_by = users.user_id OR
+                        approved_by = users.user_id
+                ))
+            AND
+                (NOT EXISTS(
+                    SELECT
+                        1
+                    FROM
+                        reports
+                    WHERE
+                        created_by = users.user_id OR
+                        approved_by = users.user_id
+                ))
+        ;
+    ');
 }

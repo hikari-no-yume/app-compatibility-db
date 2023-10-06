@@ -15,12 +15,42 @@ if (!str_ends_with($path, '/')) {
 
 if ($path === '/') {
     require '../templates/home.phpt';
-} else if ($path === '/apps/' || $path === '/reports/') {
+} else if ($path === '/apps/' || $path === '/versions/'|| $path === '/reports/') {
     // These might be their own sections at some point.
     redirect('/');
 } else if (preg_match('#^/apps/(\d+)/$#', $path, $matches) === 1) {
     $appId = (int)$matches[1];
     require '../templates/app.phpt';
+} else if (preg_match('#^/apps/(\d+)/approve/$#', $path, $matches) === 1) {
+    $appId = (int)$matches[1];
+    $objectKind = 'app';
+    $moderationAction = 'approve';
+    require '../templates/moderation_action.phpt';
+} else if (preg_match('#^/apps/(\d+)/delete/$#', $path, $matches) === 1) {
+    $appId = (int)$matches[1];
+    $objectKind = 'app';
+    $moderationAction = 'delete';
+    require '../templates/moderation_action.phpt';
+} else if (preg_match('#^/versions/(\d+)/approve/$#', $path, $matches) === 1) {
+    $versionId = (int)$matches[1];
+    $objectKind = 'version';
+    $moderationAction = 'approve';
+    require '../templates/moderation_action.phpt';
+} else if (preg_match('#^/versions/(\d+)/delete/$#', $path, $matches) === 1) {
+    $versionId = (int)$matches[1];
+    $objectKind = 'version';
+    $moderationAction = 'delete';
+    require '../templates/moderation_action.phpt';
+} else if (preg_match('#^/reports/(\d+)/approve/$#', $path, $matches) === 1) {
+    $reportId = (int)$matches[1];
+    $objectKind = 'report';
+    $moderationAction = 'approve';
+    require '../templates/moderation_action.phpt';
+} else if (preg_match('#^/reports/(\d+)/delete/$#', $path, $matches) === 1) {
+    $reportId = (int)$matches[1];
+    $objectKind = 'report';
+    $moderationAction = 'delete';
+    require '../templates/moderation_action.phpt';
 } else if ($path === '/reports/new/') {
     require '../templates/new_report.phpt';
 } else if ($path === '/signin/') {

@@ -6,6 +6,8 @@ namespace hikari_no_yume\touchHLE\app_compatibility_db;
 // user see their report after submitting it.
 $showUnapproved = (($_GET['show_unapproved'] ?? '0') === '1');
 
+$session = getSession();
+
 $appInfo = getApp($appId);
 
 if ($appInfo == NULL || (!$showUnapproved && $appInfo['approved'] === NULL)) {
@@ -20,11 +22,11 @@ require 'base.phpt';
 
 <h2>App</h2>
 
-<?php printApp($appInfo); ?>
+<?php printApp($appInfo, signedInUserIsModerator($session)); ?>
 
 <h3>Versions</h3>
 
-<?php listVersionsForApp($appId, $showUnapproved); ?>
+<?php listVersionsForApp($appId, $showUnapproved, signedInUserIsModerator($session)); ?>
 <br>
 <?=formatButtonForm([
     'action' => '/reports/new',
@@ -36,7 +38,7 @@ require 'base.phpt';
 
 <h3>Reports</h3>
 
-<?php listReportsForApp($appId, $showUnapproved); ?>
+<?php listReportsForApp($appId, $showUnapproved, signedInUserIsModerator($session)); ?>
 
 <h2>Legend</h2>
 <?php printRatingsLegend(); ?>

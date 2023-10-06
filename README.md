@@ -20,7 +20,6 @@ Various features:
 TODO:
 
 * Screenshot uploads
-* Moderation
 * License (probably will be MPL-2.0)
 * Example server configuration
 
