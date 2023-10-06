@@ -1,7 +1,7 @@
 Web app for an emulator app compatibility database
 ==================================================
 
-(WORK IN PROGRESS: EDITING NOT POSSIBLE YET)
+(WORK IN PROGRESS)
 
 This is a simple web app for managing a public app compatibility database for an emulator project.
 
@@ -21,6 +21,11 @@ TODO:
 
 * Screenshot uploads
 * License (probably will be MPL-2.0)
+* Footer, link to main site
+* Example privacy policy
+* `ob_start()`
+* More `echo`
+* `s/column/record/g`
 * Example server configuration
 
 Source code layout:
