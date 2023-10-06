@@ -2,7 +2,7 @@
 
 namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
-$session = getSession();
+$session ??= getSession();
 
 // Never show unapproved content publicly.
 if (($showUnapproved ?? FALSE) == TRUE && $session === NULL) {
@@ -36,13 +36,28 @@ echo htmlspecialchars(SITE_NAME);
 <div id=sign-in-status-box>
 <?php if ($session !== NULL): ?>
 Signed in as: <?=formatExternalUsername($session['external_username'])?>
-<form method=post action=/signout>
-<input type=submit value="Sign out">
-</form>
+<?php if (signedInUserIsModerator($session)): ?>
+<!-- By the power of Grayskull... -->
+<div style="text-align:right">🗡 <b><i>You have the power!</i></b></div>
+<?=formatButtonForm([
+    'action' => '/',
+    'method' => 'get',
+    'param_name' => 'show_unapproved',
+    'param_value' => '1',
+    'label' => 'Show unapproved reports',
+])?>
+<?php endif; ?>
+<?=formatButtonForm([
+    'action' => '/signout',
+    'method' => 'post',
+    'label' => 'Sign out',
+])?>
 <?php else: ?>
-<form method=get action=/signin>
-<input type=submit value="Sign in">
-</form>
+<?=formatButtonForm([
+    'action' => '/signin',
+    'method' => 'get',
+    'label' => 'Sign in',
+])?>
 <?php endif; ?>
 </div>
 <?php endif; ?>

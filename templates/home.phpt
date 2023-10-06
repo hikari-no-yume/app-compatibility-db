@@ -2,7 +2,10 @@
 
 namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
-$showUnapproved = (($_GET['show_unapproved'] ?? '0') === '1');
+$session = getSession();
+
+// The list of all unapproved reports is only for moderators.
+$showUnapproved = signedInUserIsModerator($session) && (($_GET['show_unapproved'] ?? '0') === '1');
 
 require 'base.phpt';
 

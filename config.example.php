@@ -122,6 +122,15 @@ const REPORT_EXTRA_FIELDS = [
 // Plain text shown when submitting a new report.
 const REPORT_GUIDANCE = "";
 
+// External user IDs of moderators empowered to approve and delete reports. Note
+// that there is not currently an audit log for removals!
+// The only currently accepted format for an external user ID is "github:xxxxxx"
+// where xxxxxx is the GitHub user ID (not the same as the username).
+// You can find the user ID at https://api.github.com/users/<username here>.
+const MODERATOR_EXTERNAL_USER_IDS = [
+    // "github:xxxxxx" => TRUE,
+];
+
 // GitHub API keys for authentication.
 // Register the app at https://github.com/settings/applications/new.
 // The callback URL must be "https://<your domain here>/signin/github-oauth-callback".

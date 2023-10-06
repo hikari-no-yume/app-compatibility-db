@@ -6,6 +6,55 @@ namespace hikari_no_yume\touchHLE\app_compatibility_db;
 // Many of these will only be used on a single page of the site.
 
 function listApps(bool $showUnapproved): void {
+    if ($showUnapproved) {
+        $extraColumns = '
+            ,
+            unapproved_version_counts.count AS unapproved_version_count,
+            unapproved_report_counts.count AS unapproved_report_count
+        ';
+        $extraJoins = '
+            LEFT JOIN
+                (
+                    SELECT
+                        COUNT(*) AS count,
+                        app_id
+                    FROM
+                        versions
+                    WHERE
+                        approved IS NULL
+                    GROUP BY
+                        app_id
+                )
+                AS
+                    unapproved_version_counts
+                ON
+                    apps.app_id = unapproved_version_counts.app_id
+            LEFT JOIN
+                (
+                    SELECT
+                        COUNT(*) AS count,
+                        versions.app_id AS app_id
+                    FROM
+                        reports
+                    LEFT JOIN
+                            versions
+                        ON
+                            versions.version_id = reports.version_id
+                    WHERE
+                        reports.approved IS NULL
+                    GROUP BY
+                        versions.app_id
+                )
+                AS
+                    unapproved_report_counts
+                ON
+                    apps.app_id = unapproved_report_counts.app_id
+        ';
+    } else {
+        $extraColumns = '';
+        $extraJoins = '';
+    }
+
     $rows = query('
         SELECT
             apps.app_id AS app_id,
@@ -14,6 +63,7 @@ function listApps(bool $showUnapproved): void {
             (approved IS NULL) AS unapproved,
             version_summaries.best_rating AS best_rating,
             extra
+            ' . $extraColumns . '
         FROM
             apps
         LEFT JOIN
@@ -25,22 +75,22 @@ function listApps(bool $showUnapproved): void {
                 FROM
                     versions
                 LEFT JOIN
-                (
-                    SELECT
-                        MAX(rating) AS rating,
-                        MAX(created) AS last_updated,
-                        version_id
-                    FROM
-                        reports
-                    WHERE
-                        (:show_unapproved OR approved IS NOT NULL)
-                    GROUP BY
-                        version_id
-                )
-                AS
-                    report_summaries
-                ON
-                    versions.version_id = report_summaries.version_id
+                    (
+                        SELECT
+                            MAX(rating) AS rating,
+                            MAX(created) AS last_updated,
+                            version_id
+                        FROM
+                            reports
+                        WHERE
+                            (:show_unapproved OR approved IS NOT NULL)
+                        GROUP BY
+                            version_id
+                    )
+                    AS
+                        report_summaries
+                    ON
+                        versions.version_id = report_summaries.version_id
                 WHERE
                     (:show_unapproved OR approved IS NOT NULL)
                 GROUP BY
@@ -50,6 +100,7 @@ function listApps(bool $showUnapproved): void {
                 version_summaries
             ON
                 apps.app_id = version_summaries.app_id
+        ' . $extraJoins . '
         WHERE
             :show_unapproved OR approved IS NOT NULL
         ORDER BY
@@ -60,7 +111,7 @@ function listApps(bool $showUnapproved): void {
     $columns = [
         'name' => [
             'name' => 'App name',
-            'link' => ['/apps/', 'app_id'],
+            'link' => ['/apps/', 'app_id', ($showUnapproved ? '?show_unapproved=1' : '')],
         ],
     ];
     $columns += convertExtraFieldInfo(APP_EXTRA_FIELDS, FALSE);
@@ -75,6 +126,18 @@ function listApps(bool $showUnapproved): void {
         ],
     ];
     $columns += convertExtraFieldInfo(APP_EXTRA_FIELDS, TRUE);
+    if ($showUnapproved) {
+        $columns += [
+            'unapproved_version_count' => [
+                'name' => 'Unapproved versions',
+                'unapproved_if_nonzero' => TRUE,
+            ],
+            'unapproved_report_count' => [
+                'name' => 'Unapproved reports',
+                'unapproved_if_nonzero' => TRUE,
+            ],
+        ];
+    }
 
     printTable($columns, $rows);
 }

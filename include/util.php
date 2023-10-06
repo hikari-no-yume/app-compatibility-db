@@ -103,6 +103,18 @@ function destroySession(): void {
     setcookie('PHPSESSID', '', time() - 3600);
 }
 
+// Check whether the logged-in user is a moderator. This property is *not*
+// stored in the session data, but rather derived from looking up the user ID
+// (which is in the session) in the configured list of moderators, so that
+// moderator access can be revoked without wiping sessions. $session is the
+// array returned by getSession().
+function signedInUserIsModerator(?array $session): bool {
+    if ($session === NULL) {
+        return FALSE;
+    }
+    return (MODERATOR_EXTERNAL_USER_IDS[$session['external_user_id']] ?? FALSE) === TRUE;
+}
+
 // Convert extra fields defined in config.php to column/field lists intended for
 // printTable(), printRecord() or printRecordForm(). Filters by 'at_end'.
 function convertExtraFieldInfo(array /*<array>*/ $extraFields, bool $atEnd): array {
@@ -144,6 +156,16 @@ function formatExternalUsername(string $externalUsername) {
     return '<a href="' . htmlspecialchars($userUrl) . '">@' . htmlspecialchars($username) . '</a>';
 }
 
+function formatButtonForm(array $buttonInfo): string {
+    $form = '<form action="' . htmlspecialchars($buttonInfo['action']) . '" method="' . htmlspecialchars($buttonInfo['method']) . '">';
+    if (isset($buttonInfo['param_name']) && isset($buttonInfo['param_value'])) {
+        $form .= '<input type=hidden name="' . htmlspecialchars($buttonInfo['param_name']) . '" value="' . htmlspecialchars($buttonInfo['param_value']) . '">';
+    }
+    $form .= '<input type=submit value="' . htmlspecialchars($buttonInfo['label']) . '">';
+    $form .= '</form>';
+    return $form;
+}
+
 // Helper function for printTable() and printRecord()
 function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<array>*/ $columnInfo): void {
     $cell = (($columnInfo['extra'] ?? FALSE) === TRUE)
@@ -151,6 +173,7 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
           : ($row[$columnKey] ?? NULL);
     $cellContent = \htmlspecialchars((string)$cell);
 
+    $openingTag = '<td>';
     if (($columnInfo['datetime'] ?? FALSE) === TRUE) {
         // SQLite uses the 'YYYY-MM-DD HH:MM:SS' format in UTC, but
         // HTML <time>'s datetime attribute wants RFC 3339 format.
@@ -161,20 +184,23 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
         $cellContent = '<time datetime="' . $rfc3339DateTime . '">' . $cellContent . '</time>';
     } else if (($columnInfo['rating'] ?? FALSE) === TRUE) {
         $cellContent = htmlspecialchars(RATINGS[$cell]['symbol'] ?? '');
+    } else if (($columnInfo['unapproved_if_nonzero'] ?? FALSE) === TRUE) {
+        if ($cellContent != 0) {
+            $openingTag = '<td class=unapproved>';
+        }
     } else if (isset($columnInfo['link'])) {
         [$linkUrlPrefix, $linkIdColumn] = $columnInfo['link'];
-        $cellContent = '<a href="' . htmlspecialchars($linkUrlPrefix . $row[$linkIdColumn]) . '">' . $cellContent . '</a>';
+        $linkUrlSuffix = $columnInfo['link'][2] ?? '';
+        $cellContent = '<a href="' . htmlspecialchars($linkUrlPrefix . $row[$linkIdColumn] . $linkUrlSuffix) . '">' . $cellContent . '</a>';
     } else if (isset($columnInfo['external_username'])) {
         $cellContent = formatExternalUsername($cell);
     } else if (isset($columnInfo['button'])) {
         $buttonInfo = $columnInfo['button'];
-        $cellContent = '<form action="' . htmlspecialchars($buttonInfo['action']) . '" method="' . htmlspecialchars($buttonInfo['method']) . '">';
-        $cellContent .= '<input type=hidden name="' . htmlspecialchars($buttonInfo['param_name']) . '" value="' . htmlspecialchars((string)$row[$buttonInfo['param_column']]) . '">';
-        $cellContent .= '<input type=submit value="' . htmlspecialchars($buttonInfo['label']) . '">';
-        $cellContent .= '</form>';
+        $buttonInfo['param_value'] = (string)$row[$buttonInfo['param_column']];
+        $cellContent = formatButtonForm($buttonInfo);
     }
 
-    echo '<td>', $cellContent, '</td>';
+    echo $openingTag, $cellContent, '</td>';
 }
 
 // Helper function for printRecordForm()
