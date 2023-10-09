@@ -16,7 +16,7 @@ if ($appInfo == NULL || (!$showUnapproved && $appInfo['approved'] === NULL)) {
 
 $breadcrumbs = ['Apps', $appInfo['name']];
 
-require 'base.phpt';
+require 'header.phpt';
 
 ?>
 
@@ -42,3 +42,7 @@ require 'base.phpt';
 
 <h2>Legend</h2>
 <?php printRatingsLegend(); ?>
+
+<?php
+
+require 'footer.phpt';

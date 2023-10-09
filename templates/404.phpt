@@ -2,8 +2,12 @@
 
 namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
-require 'base.phpt';
+require 'header.phpt';
 
 ?>
 
 404 Not Found.
+
+<?php
+
+require 'footer.phpt';

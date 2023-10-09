@@ -7,7 +7,7 @@ $session = getSession();
 // The list of all unapproved reports is only for moderators.
 $showUnapproved = signedInUserIsModerator($session) && (($_GET['show_unapproved'] ?? '0') === '1');
 
-require 'base.phpt';
+require 'header.phpt';
 
 ?>
 
@@ -20,3 +20,7 @@ require 'base.phpt';
 
 <h2>Legend</h2>
 <?php printRatingsLegend(); ?>
+
+<?php
+
+require 'footer.phpt';

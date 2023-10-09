@@ -132,7 +132,7 @@ if ($versionInfo !== NULL) {
 $breadcrumbs[] = 'Reports';
 $breadcrumbs[] = 'Submit new';
 
-require 'base.phpt';
+require 'header.phpt';
 
 ?>
 
@@ -225,3 +225,7 @@ require 'base.phpt';
 
 </fieldset>
 </form>
+
+<?php
+
+require 'footer.phpt';

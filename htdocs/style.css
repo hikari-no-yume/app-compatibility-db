@@ -63,3 +63,7 @@ th > .required {
     color: red;
     font-weight: normal
 }
+
+footer {
+    font-size: smaller;
+}

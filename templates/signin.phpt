@@ -16,7 +16,7 @@ $githubSignInUrl = GITHUB_OAUTH_AUTHORIZE_URL . '?client_id=' . rawurlencode(GIT
 // confusing.
 $doNotShowSignInStatus = TRUE;
 
-require 'base.phpt';
+require 'header.phpt';
 
 ?>
 
@@ -48,3 +48,7 @@ require 'base.phpt';
     <input type=hidden name=client_id value="<?=htmlspecialchars(GITHUB_CLIENT_ID)?>">
     <input type=submit value="Sign in with GitHub">
 </form>
+
+<?php
+
+require 'footer.phpt';
