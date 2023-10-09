@@ -109,22 +109,22 @@ function signedInUserIsModerator(?array $session): bool {
     return (MODERATOR_EXTERNAL_USER_IDS[$session['external_user_id']] ?? FALSE) === TRUE;
 }
 
-// Convert extra fields defined in config.php to column/field lists intended for
+// Convert extra fields defined in config.php to field lists intended for
 // printTable(), printRecord() or printRecordForm(). Filters by 'at_end'.
 function convertExtraFieldInfo(array /*<array>*/ $extraFields, bool $atEnd): array {
-    $columns = [];
+    $fields = [];
     foreach ($extraFields as $fieldKey => $fieldInfo) {
         if ($atEnd !== (bool)($fieldInfo['at_end'] ?? FALSE)) {
             continue;
         }
-        $columns[$fieldKey] = [
+        $fields[$fieldKey] = [
             "name" => $fieldInfo["name"],
             "extra" => TRUE,
             "required" => $fieldInfo["required"] ?? FALSE,
             "options" => $fieldInfo["options"] ?? NULL,
         ];
     }
-    return $columns;
+    return $fields;
 }
 
 // Validate extra field input (e.g. from $_POST) against extra fields lists.
@@ -169,18 +169,18 @@ function printButtonForm(array $buttonInfo): void {
 }
 
 // Helper function for printTable() and printRecord()
-function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<array>*/ $columnInfo): void {
-    $cell = (($columnInfo['extra'] ?? FALSE) === TRUE)
-          ? ($rowExtra->{$columnKey} ?? NULL)
-          : ($row[$columnKey] ?? NULL);
+function printCell(array $record, \stdClass $recordExtra, string $fieldKey, array $fieldInfo): void {
+    $cell = (($fieldInfo['extra'] ?? FALSE) === TRUE)
+          ? ($recordExtra->{$fieldKey} ?? NULL)
+          : ($record[$fieldKey] ?? NULL);
 
-    if (($columnInfo['unapproved_if_nonzero'] ?? FALSE) === TRUE && $cell != 0) {
+    if (($fieldInfo['unapproved_if_nonzero'] ?? FALSE) === TRUE && $cell != 0) {
         echo '<td class=unapproved>';
     } else {
         echo '<td>';
     }
 
-    if (($columnInfo['datetime'] ?? FALSE) === TRUE) {
+    if (($fieldInfo['datetime'] ?? FALSE) === TRUE) {
         if ($cell !== NULL) {
             // SQLite uses the 'YYYY-MM-DD HH:MM:SS' format in UTC, but
             // HTML <time>'s datetime attribute wants RFC 3339 format.
@@ -190,28 +190,28 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
             $rfc3339DateTime = $date . 'T' . $time . 'Z';
             echo '<time datetime="', $rfc3339DateTime, '">', htmlspecialchars($cell), '</time>';
         }
-    } else if (($columnInfo['rating'] ?? FALSE) === TRUE) {
+    } else if (($fieldInfo['rating'] ?? FALSE) === TRUE) {
         echo htmlspecialchars(RATINGS[$cell]['symbol'] ?? '');
-    } else if (isset($columnInfo['options'])) {
-        echo htmlspecialchars($columnInfo['options'][$cell] ?? '');
-    } else if (isset($columnInfo['link'])) {
-        [$linkUrlPrefix, $linkIdColumn] = $columnInfo['link'];
-        $linkUrlSuffix = $columnInfo['link'][2] ?? '';
-        echo '<a href="', htmlspecialchars($linkUrlPrefix . $row[$linkIdColumn] . $linkUrlSuffix), '">', htmlspecialchars($cell), '</a>';
-    } else if (isset($columnInfo['external_username'])) {
+    } else if (isset($fieldInfo['options'])) {
+        echo htmlspecialchars($fieldInfo['options'][$cell] ?? '');
+    } else if (isset($fieldInfo['link'])) {
+        [$linkUrlPrefix, $linkIdField] = $fieldInfo['link'];
+        $linkUrlSuffix = $fieldInfo['link'][2] ?? '';
+        echo '<a href="', htmlspecialchars($linkUrlPrefix . $record[$linkIdField] . $linkUrlSuffix), '">', htmlspecialchars($cell), '</a>';
+    } else if (isset($fieldInfo['external_username'])) {
         if ($cell !== NULL) {
             printExternalUsername($cell);
         }
-    } else if (isset($columnInfo['buttons'])) {
-        foreach ($columnInfo['buttons'] as $buttonInfo) {
-            if (isset($buttonInfo['depends_on_column']) && $row[$buttonInfo['depends_on_column']] == 0) {
+    } else if (isset($fieldInfo['buttons'])) {
+        foreach ($fieldInfo['buttons'] as $buttonInfo) {
+            if (isset($buttonInfo['depends_on_column']) && $record[$buttonInfo['depends_on_column']] == 0) {
                 continue;
             }
             if (isset($buttonInfo['param_column'])) {
-                $buttonInfo['param_value'] = (string)$row[$buttonInfo['param_column']];
+                $buttonInfo['param_value'] = (string)$record[$buttonInfo['param_column']];
             }
             if (isset($buttonInfo['action_column'])) {
-                $buttonInfo['action'] = $buttonInfo['action_prefix'] . (string)$row[$buttonInfo['action_column']] . ($buttonInfo['action_suffix'] ?? '');
+                $buttonInfo['action'] = $buttonInfo['action_prefix'] . (string)$record[$buttonInfo['action_column']] . ($buttonInfo['action_suffix'] ?? '');
             }
             printButtonForm($buttonInfo);
         }
@@ -223,7 +223,7 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
 }
 
 // Helper function for printRecordForm()
-function printFormCell(string $fieldKey, array /*<array>*/ $fieldInfo, string $fieldName): void {
+function printFormCell(string $fieldKey, array $fieldInfo, string $fieldName): void {
     echo '<td>';
     $common = 'name="' . htmlspecialchars($fieldName) . '"';
     $common .= ' id="' . htmlspecialchars($fieldName) . '"';
@@ -250,34 +250,35 @@ function printFormCell(string $fieldKey, array /*<array>*/ $fieldInfo, string $f
     echo '</td>';
 }
 
-// Print an HTML table with several rows of data.
-// - $columns provides the keys, ordering, names and formatting for columns.
-// - $rows provides the data for each row as an associative array, with the keys
-//   being a subset of the keys in $columns.
-// The key 'extra' in a row is always treated as a JSON object.
-// The key 'unapproved' is also special. If it is truthy, the row is tagged with
-// the 'unapproved' CSS class.
-function printTable(array /*<array>*/ $columns, array /*<array>*/ $rows): void {
+// Print an HTML table with several rows of data. Each row is one record, and
+// each column corresponds to a field.
+// - $fields provides the keys, ordering, names and formatting for the fields.
+// - $records provides the data for each record as an associative array, with
+//   the keys being a subset of the keys in $fields.
+// The key 'extra' in a record is always treated as a JSON object.
+// The key 'unapproved' is also special. If it is truthy, the row for the record
+// is tagged with the 'unapproved' CSS class.
+function printTable(array /*<array>*/ $fields, array /*<array>*/ $records): void {
     echo '<table>';
 
     echo '<thead>';
     echo '<tr>';
-    foreach ($columns as $column) {
-        echo '<th>', \htmlspecialchars($column['name']), '</th>';
+    foreach ($fields as $field) {
+        echo '<th>', \htmlspecialchars($field['name']), '</th>';
     }
     echo '</tr>';
     echo '</thead>';
 
     echo '<tbody>';
-    foreach ($rows as $row) {
-        $rowExtra = json_decode($row['extra'] ?? '{}');
-        if ((bool)($row['unapproved'] ?? FALSE)) {
+    foreach ($records as $record) {
+        $recordExtra = json_decode($record['extra'] ?? '{}');
+        if ((bool)($record['unapproved'] ?? FALSE)) {
             echo '<tr class=unapproved>';
         } else {
             echo '<tr>';
         }
-        foreach ($columns as $columnKey => $columnInfo) {
-            printCell($row, $rowExtra, $columnKey, $columnInfo);
+        foreach ($fields as $fieldKey => $fieldInfo) {
+            printCell($record, $recordExtra, $fieldKey, $fieldInfo);
         }
         echo '</tr>';
     }
@@ -287,9 +288,8 @@ function printTable(array /*<array>*/ $columns, array /*<array>*/ $rows): void {
 }
 
 // Print an HTML table for a single record, displayed vertically.
-// The parameters work similarly to printTable():
-// - $fields has the same format as $columns
-// - $record has the same format as $rows[0]
+// The parameters work similarly to printTable(). $record has the same format
+// as $records[0].
 function printRecord(array /*<array>*/ $fields, array $record): void {
     if ((bool)($record['unapproved'] ?? FALSE)) {
         echo '<table class=unapproved>';

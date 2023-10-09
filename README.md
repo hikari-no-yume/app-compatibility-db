@@ -22,7 +22,6 @@ TODO:
 * Screenshot uploads
 * License (probably will be MPL-2.0)
 * Example privacy policy
-* `s/column/record/g`
 * Example server configuration
 
 Source code layout:
