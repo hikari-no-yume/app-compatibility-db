@@ -323,6 +323,25 @@ function approveApp(int $appId, int $approvedByUserId): void {
 function deleteApp(int $appId): void {
     query('
         DELETE FROM
+            report_screenshots
+        WHERE
+            EXISTS (
+                SELECT
+                    1
+                FROM
+                    reports
+                LEFT JOIN
+                        versions
+                    ON
+                        reports.version_id = versions.version_id
+                WHERE
+                    reports.report_id = report_screenshots.report_id AND
+                    versions.app_id = :app_id
+            )
+        ;
+    ', [':app_id' => $appId]);
+    query('
+        DELETE FROM
             reports
         WHERE
             EXISTS (
@@ -581,6 +600,21 @@ function approveVersion(int $versionId, int $approvedByUserId): void {
 function deleteVersion(int $versionId): void {
     query('
         DELETE FROM
+            report_screenshots
+        WHERE
+            EXISTS (
+                SELECT
+                    1
+                FROM
+                    reports
+                WHERE
+                    reports.report_id = report_screenshots.report_id AND
+                    version_id = :version_id
+            )
+        ;
+    ', [':version_id' => $versionId]);
+    query('
+        DELETE FROM
             reports
         WHERE
             version_id = :version_id
@@ -620,11 +654,30 @@ function getReport(int $id): ?array {
     }
 }
 
+// Returns NULL if the report isn't found, or has no screenshot.
+// The result is a binary blob of JPEG data.
+function getReportScreenshotImage(int $id): string {
+    $rows = query('
+        SELECT
+            image
+        FROM
+            report_screenshots
+        WHERE
+            report_id = :report_id
+        ;
+    ', [':report_id' => $id]);
+
+    if ($rows === []) {
+        return NULL;
+    } else {
+        return $rows[0]['image'];
+    }
+}
+
 function listReportsForApp(int $appId, bool $showUnapproved, bool $moderatorView): void {
     if ($moderatorView) {
         $extraColumns = '
             ,
-            reports.report_id AS report_id,
             reports.approved AS approved,
             (SELECT external_username FROM users WHERE user_id = reports.approved_by) AS approved_by
         ';
@@ -634,12 +687,14 @@ function listReportsForApp(int $appId, bool $showUnapproved, bool $moderatorView
 
     $rows = query('
         SELECT
+            reports.report_id AS report_id,
             versions.name AS version_name,
             reports.rating AS rating,
             reports.created AS created,
             users.external_username AS created_by_username,
             (reports.approved IS NULL) AS unapproved,
-            reports.extra AS extra
+            reports.extra AS extra,
+            EXISTS (SELECT 1 FROM report_screenshots WHERE report_screenshots.report_id = reports.report_id) AS has_screenshot
             ' . $extraColumns . '
         FROM
             reports
@@ -696,6 +751,14 @@ function listReportsForApp(int $appId, bool $showUnapproved, bool $moderatorView
     }
 
     $columns += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, TRUE);
+    $columns += [
+        'has_screenshot' => [
+            'name' => 'Screenshot',
+            'link' => ['#report-screenshot-', 'report_id'],
+            'link_label' => 'View',
+            'link_if' => 'has_screenshot',
+        ],
+    ];
 
     if ($moderatorView) {
         $columns += [
@@ -706,7 +769,38 @@ function listReportsForApp(int $appId, bool $showUnapproved, bool $moderatorView
         ];
     }
 
-    printTable($columns, $rows);
+    printTable($columns, $rows, ['report-', 'report_id']);
+}
+
+function listReportScreenshotsForApp(int $appId, bool $showUnapproved): void {
+    $rows = query('
+        SELECT
+            report_id
+        FROM
+            reports
+        LEFT JOIN
+                versions
+            ON
+                reports.version_id = versions.version_id
+        WHERE
+            app_id = :app_id AND
+            (:show_unapproved OR reports.approved IS NOT NULL) AND
+            EXISTS (SELECT 1 FROM report_screenshots WHERE report_screenshots.report_id = reports.report_id)
+        ORDER BY
+            reports.created DESC
+        ;
+    ', [
+        ':app_id' => $appId,
+        ':show_unapproved' => $showUnapproved,
+    ]);
+
+    foreach ($rows as $row) {
+        $reportId = (string)$row['report_id'];
+        echo '<figure id="', htmlspecialchars('report-screenshot-' . $reportId), '">';
+        echo '<img src="', htmlspecialchars('/reports/' . $reportId . '/screenshot'), '" alt="Screenshot">';
+        echo '<figcaption><a href="#report-', htmlspecialchars($reportId), '">Go to report</a></figcaption>';
+        echo '</figure>';
+    }
 }
 
 function printReportForm(): void {
@@ -719,6 +813,15 @@ function printReportForm(): void {
         ],
     ];
     $fields += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, TRUE);
+
+    if (REPORT_SCREENSHOTS_ALLOWED) {
+        $fields += [
+            'screenshot' => [
+                'name' => 'Screenshot',
+                'image_upload' => TRUE,
+            ],
+        ];
+    }
 
     printRecordForm($fields, 'report');
 }
@@ -741,6 +844,28 @@ function createReport(array $report): ?int {
     $versionId = $report['version_id'] ?? NULL;
     if (!is_int($versionId)) {
         return NULL;
+    }
+
+    $screenshot = $report['screenshot'] ?? NULL;
+    if ($screenshot === '') {
+        $screenshot = NULL;
+    // This should be a base64 data URI for a JPEG image, which will have been
+    // compressed on the client by the code in script.js, which uses 80% JPEG
+    // quality and limits the size to at most 640 × 640 pixels. Cursory testing
+    // suggests the result is usually around 50KB and, rarely, as high as 96KB.
+    // I'm not sure what the actual maximum is, but 50% more than the largest
+    // size I've seen is probably a reasonable limit. The (8/6) is to compensate
+    // for base64 encoding.
+    } else if (!is_string($screenshot) ||
+        strlen($screenshot) > (150 * 1000 * (8/6)) ||
+        !str_starts_with($screenshot, "data:image/jpeg;base64,")) {
+        return NULL;
+    } else {
+        $screenshot = substr($screenshot, strlen("data:image/jpeg;base64,"));
+        $screenshot = base64_decode($screenshot, /* strict: */ TRUE);
+        if ($screenshot === FALSE) {
+            return NULL;
+        }
     }
 
     $extra = $report['extra'] ?? [];
@@ -778,7 +903,28 @@ function createReport(array $report): ?int {
         ':rating' => $rating,
         ':extra' => $extra,
     ]);
-    return $rows[0]['report_id'];
+    $reportId = $rows[0]['report_id'];
+
+    if ($screenshot !== NULL) {
+        $rows = query('
+            INSERT INTO
+                report_screenshots(
+                    report_id,
+                    image
+                )
+            VALUES
+                (
+                    :report_id,
+                    :image
+                )
+            ;
+        ', [
+            ':report_id' => $reportId,
+            ':image' => $screenshot,
+        ]);
+    }
+
+    return $reportId;
 }
 
 // It is recommended to call this as part of a transaction.
@@ -802,6 +948,13 @@ function approveReport(int $reportId, int $approvedByUserId): void {
 // This must be called as part of a transaction!
 // There is no audit log or undo!
 function deleteReport(int $reportId): void {
+    query('
+        DELETE FROM
+            report_screenshots
+        WHERE
+            report_id = :report_id
+        ;
+    ', [':report_id' => $reportId]);
     query('
         DELETE FROM
             reports

@@ -38,6 +38,14 @@ CREATE TABLE IF NOT EXISTS reports (
     FOREIGN KEY(approved_by) REFERENCES users(user_id)
 );
 
+-- separate table from reports so that SELECT * won't return many KBs of
+-- unneeded data
+CREATE TABLE IF NOT EXISTS report_screenshots (
+    report_id   INTEGER UNIQUE NOT NULL,
+    image       BLOB NOT NULL, -- always an JPEG binary blob
+    FOREIGN KEY(report_id) REFERENCES reports(report_id)
+);
+
 CREATE TABLE IF NOT EXISTS users (
     user_id             INTEGER PRIMARY KEY AUTOINCREMENT,
     external_user_id    STRING UNIQUE NOT NULL, -- "service_name:xxxxxx"

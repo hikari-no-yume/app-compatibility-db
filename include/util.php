@@ -195,9 +195,12 @@ function printCell(array $record, \stdClass $recordExtra, string $fieldKey, arra
     } else if (isset($fieldInfo['options'])) {
         echo htmlspecialchars($fieldInfo['options'][$cell] ?? '');
     } else if (isset($fieldInfo['link'])) {
-        [$linkUrlPrefix, $linkIdField] = $fieldInfo['link'];
-        $linkUrlSuffix = $fieldInfo['link'][2] ?? '';
-        echo '<a href="', htmlspecialchars($linkUrlPrefix . $record[$linkIdField] . $linkUrlSuffix), '">', htmlspecialchars($cell), '</a>';
+        if (!isset($fieldInfo['link_if']) || $record[$fieldInfo['link_if']] != 0) {
+            [$linkUrlPrefix, $linkIdField] = $fieldInfo['link'];
+            $linkUrlSuffix = $fieldInfo['link'][2] ?? '';
+            $linkLabel = $fieldInfo['link_label'] ?? (string)$cell;
+            echo '<a href="', htmlspecialchars($linkUrlPrefix . $record[$linkIdField] . $linkUrlSuffix), '">', htmlspecialchars($linkLabel), '</a>';
+        }
     } else if (isset($fieldInfo['external_username'])) {
         if ($cell !== NULL) {
             printExternalUsername($cell);
@@ -244,6 +247,9 @@ function printFormCell(string $fieldKey, array $fieldInfo, string $fieldName): v
             echo '<option value="', htmlspecialchars((string)$optionKey), '">', htmlspecialchars($optionName), '</option>';
         }
         echo '</select>';
+    } else if (isset($fieldInfo['image_upload'])) {
+        echo '<noscript>Uploading an image requires JavaScript support. You seem to have JavaScript disabled.</noscript>';
+        echo '<input type=hidden ', $common, ' class=image-upload>';
     } else {
         echo '<input type=text ', $common, '>';
     }
@@ -255,10 +261,12 @@ function printFormCell(string $fieldKey, array $fieldInfo, string $fieldName): v
 // - $fields provides the keys, ordering, names and formatting for the fields.
 // - $records provides the data for each record as an associative array, with
 //   the keys being a subset of the keys in $fields.
+// - $rowId is an optional parameter. If specified, it should contain a prefix
+//   and a field key, which will be used to build an HTML `id` for each row.
 // The key 'extra' in a record is always treated as a JSON object.
 // The key 'unapproved' is also special. If it is truthy, the row for the record
 // is tagged with the 'unapproved' CSS class.
-function printTable(array /*<array>*/ $fields, array /*<array>*/ $records): void {
+function printTable(array /*<array>*/ $fields, array /*<array>*/ $records, array $rowId = NULL): void {
     echo '<table>';
 
     echo '<thead>';
@@ -272,11 +280,15 @@ function printTable(array /*<array>*/ $fields, array /*<array>*/ $records): void
     echo '<tbody>';
     foreach ($records as $record) {
         $recordExtra = json_decode($record['extra'] ?? '{}');
+        echo '<tr';
         if ((bool)($record['unapproved'] ?? FALSE)) {
-            echo '<tr class=unapproved>';
-        } else {
-            echo '<tr>';
+            echo ' class=unapproved';
         }
+        if (isset($rowId)) {
+            [$rowIdPrefix, $rowIdFieldKey] = $rowId;
+            echo ' id="', htmlspecialchars($rowIdPrefix . $record[$rowIdFieldKey]), '"';
+        }
+        echo '>';
         foreach ($fields as $fieldKey => $fieldInfo) {
             printCell($record, $recordExtra, $fieldKey, $fieldInfo);
         }

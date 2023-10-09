@@ -40,8 +40,11 @@ require 'header.phpt';
 
 <?php listReportsForApp($appId, $showUnapproved, signedInUserIsModerator($session)); ?>
 
-<h2>Legend</h2>
+<h3>Legend</h3>
 <?php printRatingsLegend(); ?>
+
+<h3>Screenshots</h3>
+<?php listReportScreenshotsForApp($appId, $showUnapproved); ?>
 
 <?php
 

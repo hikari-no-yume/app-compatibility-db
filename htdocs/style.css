@@ -21,6 +21,9 @@ html {
     background: grey;
     color: white;
 }
+.unapproved:target {
+    background: olive;
+}
 div.unapproved {
     margin: 1em 0;
     padding: 0.5em;
@@ -39,6 +42,10 @@ table, th, td {
     border: 1px solid silver;
     border-collapse: collapse;
     padding: 0.3em;
+}
+
+*:target {
+    background-color: lightyellow;
 }
 
 label {
@@ -68,6 +75,10 @@ th > .required {
 .required {
     color: red;
     font-weight: normal
+}
+
+input.image-upload ~ button { /* clear button */
+    margin-left: 0.5em;
 }
 
 footer {
