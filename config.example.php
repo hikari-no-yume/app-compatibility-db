@@ -56,7 +56,6 @@ const RATINGS = [
 const GENERAL_GUIDANCE = "Do not link to pirated content in your submission.";
 
 // Additional fields are stored in the JSON blob columns in the DB.
-// Currently these can only be plain-text, single-line fields.
 //
 // The format for a list of fields is:
 //
@@ -67,6 +66,13 @@ const GENERAL_GUIDANCE = "Do not link to pirated content in your submission.";
 //          ],
 //          'key2' => [
 //              'name' => 'Human-readable name 2',
+//              'options' => [
+//                  'option1' => 'Human-readable option name 1',
+//                  'option2' => 'Human-readable option name 2',
+//              ],
+//          ],
+//          'key3' => [
+//              'name' => 'Human-readable name 3',
 //              'at_end' => TRUE,
 //          ],
 //          ...
@@ -88,6 +94,12 @@ const GENERAL_GUIDANCE = "Do not link to pirated content in your submission.";
 //   Otherwise, it appears between the name and the rating or creation date.
 // - If 'required' is TRUE, the field is marked as required and the form can't
 //   be submitted without entering something for it.
+// - They are plain-text, single-line fields by default. If you specify
+//   'options' they become multiple-choice. The keys of that field are the
+//   values stored in the JSON and sent in the form, whereas the values are
+//   human-readable names. Therefore, you can add new keys and change the values
+//   but you probably don't want to rename or remove keys. Don't use the key '',
+//   that's reserved for when a selection hasn't been made.
 
 // Additional fields for apps
 const APP_EXTRA_FIELDS = [
@@ -97,6 +109,15 @@ const APP_EXTRA_FIELDS = [
     ],
     'release_year' => [
         'name' => 'Release year',
+    ],
+    'bitness' => [
+        'name' => 'Bitness',
+        'options' => [
+            '32' => '32-bit',
+            '64' => '64-bit',
+            '128' => '128-bit',
+            'quantum' => 'qubit',
+        ],
     ],
 ];
 

@@ -121,6 +121,7 @@ function convertExtraFieldInfo(array /*<array>*/ $extraFields, bool $atEnd): arr
             "name" => $fieldInfo["name"],
             "extra" => TRUE,
             "required" => $fieldInfo["required"] ?? FALSE,
+            "options" => $fieldInfo["options"] ?? NULL,
         ];
     }
     return $columns;
@@ -138,6 +139,9 @@ function validateExtraFields(array /*<array>*/ $extraFields, array $extraInput):
             return FALSE;
         }
         if (($fieldInfo['required'] ?? FALSE) === TRUE && $fieldValue === "") {
+            return FALSE;
+        }
+        if (isset($fieldInfo['options']) && !isset($fieldInfo['options'][$fieldValue])) {
             return FALSE;
         }
     }
@@ -185,6 +189,8 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
         }
     } else if (($columnInfo['rating'] ?? FALSE) === TRUE) {
         $cellContent = htmlspecialchars(RATINGS[$cell]['symbol'] ?? '');
+    } else if (isset($columnInfo['options'])) {
+        $cellContent = htmlspecialchars($columnInfo['options'][$cell] ?? '');
     } else if (($columnInfo['unapproved_if_nonzero'] ?? FALSE) === TRUE) {
         if ($cellContent != 0) {
             $openingTag = '<td class=unapproved>';
@@ -229,6 +235,13 @@ function printFormCell(string $fieldKey, array /*<array>*/ $fieldInfo, string $f
         echo '<option value="" selected>(please select)</option>';
         for ($i = 1; $i <= 5; $i++) {
             echo '<option value=', $i, '> ', $i, ' - ', htmlspecialchars(RATINGS[$i]['symbol']), ' - ', htmlspecialchars(RATINGS[$i]['description']), '</option>';
+        }
+        echo '</select>';
+    } else if (isset($fieldInfo['options'])) {
+        echo '<select ', $common, '>';
+        echo '<option value="" selected>(please select)</option>';
+        foreach ($fieldInfo['options'] as $optionKey => $optionName) {
+            echo '<option value="', htmlspecialchars((string)$optionKey), '">', htmlspecialchars($optionName), '</option>';
         }
         echo '</select>';
     } else {
