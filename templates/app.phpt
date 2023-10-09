@@ -28,13 +28,13 @@ require 'header.phpt';
 
 <?php listVersionsForApp($appId, $showUnapproved, signedInUserIsModerator($session)); ?>
 <br>
-<?=formatButtonForm([
+<?php printButtonForm([
     'action' => '/reports/new',
     'method' => 'get',
     'param_name' => 'app',
     'param_value' => (string)$appId,
     'label' => 'Submit report for a new version',
-])?>
+]); ?>
 
 <h3>Reports</h3>
 

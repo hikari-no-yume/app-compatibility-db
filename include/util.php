@@ -148,25 +148,24 @@ function validateExtraFields(array /*<array>*/ $extraFields, array $extraInput):
     return TRUE;
 }
 
-function formatExternalUsername(string $externalUsername) {
+function printExternalUsername(string $externalUsername): void {
     $username = explode(':', $externalUsername)[1];
     $userUrl = 'https://github.com/' . $username;
-    return '<a href="' . htmlspecialchars($userUrl) . '">@' . htmlspecialchars($username) . '</a>';
+    echo '<a href="', htmlspecialchars($userUrl), '">@', htmlspecialchars($username), '</a>';
 }
 
-function formatButtonForm(array $buttonInfo): string {
-    $formParams = 'action="' . htmlspecialchars($buttonInfo['action']) . '"';
-    $formParams .= ' method="' . htmlspecialchars($buttonInfo['method']) . '"';
+function printButtonForm(array $buttonInfo): void {
+    echo '<form action="', htmlspecialchars($buttonInfo['action']), '"';
+    echo ' method="', htmlspecialchars($buttonInfo['method']), '"';
     if (isset($buttonInfo['onsubmit'])) {
-        $formParams .= ' onsubmit="' . htmlspecialchars($buttonInfo['onsubmit']) . '"';
+        echo ' onsubmit="', htmlspecialchars($buttonInfo['onsubmit']), '"';
     }
-    $form = '<form ' . $formParams . '>';
+    echo '>';
     if (isset($buttonInfo['param_name']) && isset($buttonInfo['param_value'])) {
-        $form .= '<input type=hidden name="' . htmlspecialchars($buttonInfo['param_name']) . '" value="' . htmlspecialchars($buttonInfo['param_value']) . '">';
+        echo '<input type=hidden name="', htmlspecialchars($buttonInfo['param_name']), '" value="', htmlspecialchars($buttonInfo['param_value']), '">';
     }
-    $form .= '<input type=submit value="' . htmlspecialchars($buttonInfo['label']) . '">';
-    $form .= '</form>';
-    return $form;
+    echo '<input type=submit value="', htmlspecialchars($buttonInfo['label']), '">';
+    echo '</form>';
 }
 
 // Helper function for printTable() and printRecord()
@@ -174,9 +173,13 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
     $cell = (($columnInfo['extra'] ?? FALSE) === TRUE)
           ? ($rowExtra->{$columnKey} ?? NULL)
           : ($row[$columnKey] ?? NULL);
-    $cellContent = \htmlspecialchars((string)$cell);
 
-    $openingTag = '<td>';
+    if (($columnInfo['unapproved_if_nonzero'] ?? FALSE) === TRUE && $cell != 0) {
+        echo '<td class=unapproved>';
+    } else {
+        echo '<td>';
+    }
+
     if (($columnInfo['datetime'] ?? FALSE) === TRUE) {
         if ($cell !== NULL) {
             // SQLite uses the 'YYYY-MM-DD HH:MM:SS' format in UTC, but
@@ -185,26 +188,21 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
             // Date() constructor (see htdocs/script.js).
             [$date, $time] = explode(' ', $cell);
             $rfc3339DateTime = $date . 'T' . $time . 'Z';
-            $cellContent = '<time datetime="' . $rfc3339DateTime . '">' . $cellContent . '</time>';
+            echo '<time datetime="', $rfc3339DateTime, '">', htmlspecialchars($cell), '</time>';
         }
     } else if (($columnInfo['rating'] ?? FALSE) === TRUE) {
-        $cellContent = htmlspecialchars(RATINGS[$cell]['symbol'] ?? '');
+        echo htmlspecialchars(RATINGS[$cell]['symbol'] ?? '');
     } else if (isset($columnInfo['options'])) {
-        $cellContent = htmlspecialchars($columnInfo['options'][$cell] ?? '');
-    } else if (($columnInfo['unapproved_if_nonzero'] ?? FALSE) === TRUE) {
-        if ($cellContent != 0) {
-            $openingTag = '<td class=unapproved>';
-        }
+        echo htmlspecialchars($columnInfo['options'][$cell] ?? '');
     } else if (isset($columnInfo['link'])) {
         [$linkUrlPrefix, $linkIdColumn] = $columnInfo['link'];
         $linkUrlSuffix = $columnInfo['link'][2] ?? '';
-        $cellContent = '<a href="' . htmlspecialchars($linkUrlPrefix . $row[$linkIdColumn] . $linkUrlSuffix) . '">' . $cellContent . '</a>';
+        echo '<a href="', htmlspecialchars($linkUrlPrefix . $row[$linkIdColumn] . $linkUrlSuffix), '">', htmlspecialchars($cell), '</a>';
     } else if (isset($columnInfo['external_username'])) {
         if ($cell !== NULL) {
-            $cellContent = formatExternalUsername($cell);
+            printExternalUsername($cell);
         }
     } else if (isset($columnInfo['buttons'])) {
-        $cellContent = '';
         foreach ($columnInfo['buttons'] as $buttonInfo) {
             if (isset($buttonInfo['depends_on_column']) && $row[$buttonInfo['depends_on_column']] == 0) {
                 continue;
@@ -215,11 +213,13 @@ function printCell(array $row, \stdClass $rowExtra, string $columnKey, array /*<
             if (isset($buttonInfo['action_column'])) {
                 $buttonInfo['action'] = $buttonInfo['action_prefix'] . (string)$row[$buttonInfo['action_column']] . ($buttonInfo['action_suffix'] ?? '');
             }
-            $cellContent .= formatButtonForm($buttonInfo);
+            printButtonForm($buttonInfo);
         }
+    } else {
+        echo htmlspecialchars((string)$cell);
     }
 
-    echo $openingTag, $cellContent, '</td>';
+    echo '</td>';
 }
 
 // Helper function for printRecordForm()

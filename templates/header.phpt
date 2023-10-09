@@ -47,29 +47,29 @@ if (!empty($breadcrumbs)) {
 <?php if (empty($doNotShowSignInStatus)): ?>
 <div id=sign-in-status-box>
 <?php if ($session !== NULL): ?>
-Signed in as: <?=formatExternalUsername($session['external_username'])?>
+Signed in as: <?php printExternalUsername($session['external_username']); ?>
 <?php if (signedInUserIsModerator($session)): ?>
 <!-- By the power of Grayskull... -->
 <div style="text-align:right">🗡 <b><i>You have the power!</i></b></div>
-<?=formatButtonForm([
+<?php printButtonForm([
     'action' => '/',
     'method' => 'get',
     'param_name' => 'show_unapproved',
     'param_value' => '1',
     'label' => 'Show unapproved reports',
-])?>
+]); ?>
 <?php endif; ?>
-<?=formatButtonForm([
+<?php printButtonForm([
     'action' => '/signout',
     'method' => 'post',
     'label' => 'Sign out',
-])?>
+]); ?>
 <?php else: ?>
-<?=formatButtonForm([
+<?php printButtonForm([
     'action' => '/signin',
     'method' => 'get',
     'label' => 'Sign in',
-])?>
+]); ?>
 <?php endif; ?>
 </div>
 <?php endif; ?>
