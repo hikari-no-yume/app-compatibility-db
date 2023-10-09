@@ -6,9 +6,15 @@ html {
     float: right;
 }
 
-#breadcrumbs, #breadcrumbs > a, #sign-in-status-box {
-    color: #555;
+#breadcrumbs, #sign-in-status-box {
     margin-bottom: 1em;
+}
+#breadcrumbs, #sign-in-status-box, #breadcrumbs > a, #breadcrumbs > h1 > a {
+    color: #555;
+}
+#breadcrumbs > h1 {
+    display: inline;
+    font-size: inherit;
 }
 
 .unapproved {

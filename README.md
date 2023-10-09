@@ -21,7 +21,6 @@ TODO:
 
 * Screenshot uploads
 * License (probably will be MPL-2.0)
-* Link to main site
 * Example privacy policy
 * More `echo`
 * `s/column/record/g`

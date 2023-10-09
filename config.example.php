@@ -3,6 +3,13 @@
 // Human-readable name of the site, as plain text
 const SITE_NAME = 'Example Emulator app compatibility database';
 
+// If this database belongs to a larger site (for example, the main website of
+// your emulator), you can specify its name and URL here in plain text, and
+// they'll be linked at the top of the page. If the name is set to NULL, they
+// won't be.
+const PARENT_SITE_NAME = NULL; // e.g. 'Example Emulator main site'
+const PARENT_SITE_URL = NULL; // e.g. 'https://emulator.example.org'
+
 // URL of the privacy policy of the site (may be external)
 // Make sure this doesn't contradict templates/signin.phpt
 const SITE_PRIVACY_POLICY = "privacy.html";

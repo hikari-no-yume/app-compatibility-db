@@ -24,7 +24,19 @@ echo htmlspecialchars(SITE_NAME);
 <link rel=stylesheet href=/style.css>
 <script src=/script.js></script>
 
-<h1><?=htmlspecialchars(SITE_NAME)?></h1>
+<div id=breadcrumbs>
+<?php if (PARENT_SITE_NAME !== NULL): ?>
+<a href="<?=htmlspecialchars(PARENT_SITE_URL)?>"><?=htmlspecialchars(PARENT_SITE_NAME)?></a> &gt;
+<?php endif; ?>
+<h1><a href=/><?=htmlspecialchars(SITE_NAME)?></a></h1>
+<?php
+
+if (!empty($breadcrumbs)) {
+    echo ' &gt; ', htmlspecialchars(implode(' > ', $breadcrumbs));
+}
+
+?>
+</div>
 
 <?php if (($showUnapproved ?? FALSE) === TRUE): ?>
 <div class=unapproved>
@@ -61,14 +73,3 @@ Signed in as: <?=formatExternalUsername($session['external_username'])?>
 <?php endif; ?>
 </div>
 <?php endif; ?>
-
-<div id=breadcrumbs>
-<a href=/>Home</a>
-<?php
-
-if (!empty($breadcrumbs)) {
-    echo ' &gt; ', htmlspecialchars(implode(' > ', $breadcrumbs));
-}
-
-?>
-</div>
