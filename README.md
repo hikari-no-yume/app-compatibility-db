@@ -23,7 +23,6 @@ TODO:
 * License (probably will be MPL-2.0)
 * Footer, link to main site
 * Example privacy policy
-* `ob_start()`
 * More `echo`
 * `s/column/record/g`
 * Example server configuration

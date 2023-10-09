@@ -2,11 +2,22 @@
 
 namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
+// Set this first thing, in case an error happens while loading the includes.
+ini_set('display_errors', '0');
+
+// See getSession() remarks in util.php.
+ini_set('session.auto_start', '0');
+
+// Everything is more annoying without output buffering.
+ob_start();
+
+require_once '../config.php';
+
 require_once '../include/util.php';
 require_once '../include/queries.php';
 require_once '../include/oauth.php';
 
-init();
+initDb();
 
 $path = $_SERVER['PATH_INFO'] ?? '';
 if (!str_ends_with($path, '/')) {

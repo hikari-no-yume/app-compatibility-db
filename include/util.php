@@ -4,12 +4,7 @@ namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
 // Various functions useful across the site
 
-function init(): void {
-    ini_set('display_errors', '0');
-    ini_set('session.auto_start', '0'); // See getSession() remarks
-
-    require_once '../config.php';
-
+function initDb(): void {
     global $db;
     $db = new \PDO('sqlite:' . SITE_DB_PATH);
     $db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -73,8 +68,7 @@ function getSession(): ?array {
     return $_SESSION;
 }
 
-// Set new session data. This will set a cookie, and therefore needs to be
-// called before outputting anything if output buffering isn't in use.
+// Set new session data. This will set a cookie.
 // Be sure you've informed the user that the action they're taking will set a
 // cookie.
 function setSession(array $sessionData) {
