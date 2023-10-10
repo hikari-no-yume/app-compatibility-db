@@ -19,7 +19,7 @@ require_once '../include/oauth.php';
 
 initDb();
 
-$path = $_SERVER['REQUEST_URI'] ?? '';
+$path = explode('?', $_SERVER['REQUEST_URI'] ?? '', 2)[0];
 if (!str_ends_with($path, '/')) {
     $path .= '/';
 }
