@@ -15,7 +15,9 @@ Various features:
   * “Apps” (applications tested in the emulator)
   * “Versions” (versions of those applications)
   * “Reports” (different users' experiences with those versions)
-* Users can sign in with their GitHub account
+* Users can sign in with their GitHub account.
+* Reports can have a screenshot attached to them. Screenshots are compressed to ~50KB on the client side.
+* Moderators have the power to approve or delete new reports.
 
 TODO:
 
@@ -44,5 +46,3 @@ Make sure you have git, PHP 8 and the SQLite 3 command-line interface installed.
 4. Set up database: `sqlite3 app_db.sqlite3 -init schema.sql` (then type `.quit` to exit)
 
 You can then do `cd htdocs && php -S localhost:8000` to start a local server.
-
-Currently there is no editing possible, so you will need to use a tool like `sqlite3` to manually edit the database.
