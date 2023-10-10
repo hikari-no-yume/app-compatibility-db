@@ -4,6 +4,25 @@ namespace hikari_no_yume\touchHLE\app_compatibility_db;
 
 // Various functions useful across the site
 
+// These functions are from PHP 8, so a polyfill is needed for PHP 7
+// compatibility.
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $haystack, string $needle): bool {
+        if (\strlen($needle) > \strlen($haystack)) {
+            return FALSE;
+        }
+        return \substr_compare($haystack, $needle, 0, \strlen($needle)) === 0;
+    }
+}
+if (!function_exists('str_ends_with')) {
+    function str_ends_with(string $haystack, string $needle): bool {
+        if (\strlen($needle) > \strlen($haystack)) {
+            return FALSE;
+        }
+        return \substr_compare($haystack, $needle, -\strlen($needle), \strlen($needle)) === 0;
+    }
+}
+
 function initDb(): void {
     global $db;
     $db = new \PDO('sqlite:' . SITE_DB_PATH);
