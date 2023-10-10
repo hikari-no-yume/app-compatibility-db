@@ -448,7 +448,7 @@ function listVersionsForApp(int $appId, bool $showUnapproved, bool $moderatorVie
 
     $columns = [
         'name' => [
-            'name' => 'Version name',
+            'name' => 'Version number',
         ],
     ];
     $columns += convertExtraFieldInfo(VERSION_EXTRA_FIELDS, FALSE);
@@ -508,7 +508,7 @@ function listVersionsForApp(int $appId, bool $showUnapproved, bool $moderatorVie
 function printVersionForm(): void {
     $fields = [
         'name' => [
-            'name' => 'Version name',
+            'name' => 'Version number',
             'required' => TRUE,
         ]
     ];
@@ -719,7 +719,7 @@ function listReportsForApp(int $appId, bool $showUnapproved, bool $moderatorView
 
     $columns = [
         'version_name' => [
-            'name' => 'Version name',
+            'name' => 'Version number',
         ],
     ];
     $columns += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, FALSE);
