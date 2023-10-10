@@ -22,13 +22,13 @@ Various features:
 TODO:
 
 * License (probably will be MPL-2.0)
-* Example server configuration
 
 Source code layout:
 
 * [`schema.sql`](schema.sql): SQL schema
 * [`config.example.php`](config.example.php): configuration file example/documentation
 * [`privacy.example.html`](privacy.example.html): example privacy policy
+* [`nginx-config-example.conf`](nginx-config-example.conf): example nginx configuration
 * [`htdocs/`](htdocs/): public files, mainly static assets
 * [`htdocs/index.php`](htdocs/index.php): sole entry point and router
 * [`templates/`](templates/): templates and view/controller code
@@ -37,13 +37,22 @@ Source code layout:
 Setting up for development
 --------------------------
 
-Make sure you have git, PHP 8 and the SQLite 3 command-line interface installed.
+Make sure you have git, PHP 7.4 or PHP 8 and the SQLite 3 command-line interface installed.
 
 1. `git clone https://github.com/hikari-no-yume/app-compatibility-db`
 2. `cd app-compatibility-db`
-3. Set up a configuration: `cp config.example.php config.php`, then make sure to edit `config.php` appropriately
-4. Set up database: `sqlite3 app_db.sqlite3 -init schema.sql` (then type `.quit` to exit)
+3. Configure the web app: `cp config.example.php config.php`, then make sure to edit `config.php` appropriately
+4. Create the database: `sqlite3 app_db.sqlite3 '.read schema.sql'`
 
 You can then do `cd htdocs && php -S localhost:8000` to start a local server.
 
-Note that for a real deployment, you must also provide a privacy policy!
+Deployment
+----------
+
+This web app assumes it has its own domain name. You might want to use a subdomain of your emulator project's main domain.
+
+An example nginx configuration file is available, which uses PHP FPM. The only file that needs to be made writeable by the web server is the SQLite database.
+
+Note that for a real deployment, you must provide a privacy policy, and you should be careful not to use the same GitHub API keys as for development.
+
+If you're struggling to deploy this web app for yourself, feel free to contact me. I might be able to help.
