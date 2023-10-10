@@ -40,7 +40,7 @@ if (!empty($breadcrumbs)) {
 
 <?php if (($showUnapproved ?? FALSE) === TRUE): ?>
 <div class=unapproved>
-⚠️  Some content on this page (shown with a grey background) is not yet approved by a moderator.
+⚠️  Some content on this page (shown with a grey background) is not yet approved by a moderator. This content is not visible publicly.
 </div>
 <?php endif; ?>
 
