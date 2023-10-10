@@ -18,14 +18,14 @@ if ($objectKind === 'app') {
         show404();
         exit;
     }
-    $appId = $versionInfo['app_id'];
+    $appId = (int)$versionInfo['app_id'];
 } else if ($objectKind === 'report') {
     $reportInfo = getReport($reportId);
     if ($reportInfo == NULL) {
         show404();
         exit;
     }
-    $appId = $reportInfo['app_id'];
+    $appId = (int)$reportInfo['app_id'];
 } else {
     throw new Error;
 }

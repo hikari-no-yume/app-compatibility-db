@@ -104,7 +104,7 @@ if ($versionId !== NULL) {
         show404();
         exit;
     }
-    $appId = $versionInfo['app_id'];
+    $appId = (int)$versionInfo['app_id'];
 } else {
     $versionInfo = NULL;
 }

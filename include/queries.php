@@ -979,7 +979,7 @@ function createOrGetUserId(string $externalUserId, string $externalUsername): in
     ', [':external_user_id' => $externalUserId]);
 
     if ($rows !== []) {
-        return $rows[0]['user_id'];
+        return (int)$rows[0]['user_id'];
     }
 
     $rows = query('
