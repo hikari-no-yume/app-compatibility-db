@@ -8,6 +8,15 @@ if ($session === NULL) {
     exit;
 }
 
+// To try to avoid a flood of reports, let's rate limit users so they can't
+// submit new ones until their existing ones have been approved.
+$userId = getUserId($session['external_user_id']);
+if ($userId !== NULL && userHasUnapprovedItems($userId)) {
+    header('HTTP/1.1 429 Too Many Requests');
+    echo 'In order to assist moderation, there is currently a limit of one unapproved report per user. As your previous report is still pending moderation, you are not able to submit a new one. Please check back later. We apologise for the inconvenience.';
+    exit;
+}
+
 // Every report has to be connected to a version, and every version has to be
 // connected to an app. Each of these objects has to be created separately in
 // the database, and each is moderated separately. If there were separate forms

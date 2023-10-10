@@ -923,6 +923,36 @@ function createReport(array $report): ?int {
     return $reportId;
 }
 
+function userHasUnapprovedItems(int $userId): bool {
+    $rows = query('
+        SELECT
+            (EXISTS(
+                SELECT
+                    1
+                FROM
+                    apps
+                WHERE
+                    approved IS NULL AND created_by = :user_id
+            ) OR EXISTS(
+                SELECT
+                    1
+                FROM
+                    versions
+                WHERE
+                    approved IS NULL AND created_by = :user_id
+            ) OR EXISTS(
+                SELECT
+                    1
+                FROM
+                    reports
+                WHERE
+                    approved IS NULL AND created_by = :user_id
+            )) AS user_has_unapproved_items
+        ;
+    ', [':user_id' => $userId]);
+    return (bool)$rows[0]['user_has_unapproved_items'];
+}
+
 // It is recommended to call this as part of a transaction.
 function approveReport(int $reportId, int $approvedByUserId): void {
     query('
@@ -961,15 +991,9 @@ function deleteReport(int $reportId): void {
     cleanUpUsers();
 }
 
-// Register the (external user ID, external username) pair in the database, if
-// it doesn't already exist, and return the internal user ID. Note that the
-// external user ID and username must be prefixed with the service they're from.
-//
-// This should only be called as part of a transaction that adds some other
-// record referencing the user ID, so that users' identities are not tracked
-// unless they have chosen to do submit something, at which point they are
-// warned of the tracking. (See templates/new_report.phpt.)
-function createOrGetUserId(string $externalUserId, string $externalUsername): int {
+// Gets the internal user ID using an external user ID. See createOrGetUserId()
+// for more detail. Returns NULL if there is no internal user ID for this user.
+function getUserId(string $externalUserId): ?int {
     $rows = query('
         SELECT
             user_id
@@ -982,6 +1006,23 @@ function createOrGetUserId(string $externalUserId, string $externalUsername): in
 
     if ($rows !== []) {
         return (int)$rows[0]['user_id'];
+    } else {
+        return NULL;
+    }
+}
+
+// Register the (external user ID, external username) pair in the database, if
+// it doesn't already exist, and return the internal user ID. Note that the
+// external user ID and username must be prefixed with the service they're from.
+//
+// This should only be called as part of a transaction that adds some other
+// record referencing the user ID, so that users' identities are not tracked
+// unless they have chosen to do submit something, at which point they are
+// warned of the tracking. (See templates/new_report.phpt.)
+function createOrGetUserId(string $externalUserId, string $externalUsername): int {
+    $existing = getUserId($externalUserId);
+    if ($existing !== NULL) {
+        return $existing;
     }
 
     $rows = query('
