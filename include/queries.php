@@ -260,7 +260,7 @@ function createApp(array $app): ?int {
     }
 
     $name = $app['name'] ?? NULL;
-    if (!is_string($name) || $name === "") {
+    if (!is_string($name) || $name === "" || !validateInputLength($name)) {
         return NULL;
     }
 
@@ -534,7 +534,7 @@ function createVersion(array $version): ?int {
     }
 
     $name = $version['name'] ?? NULL;
-    if (!is_string($name) || $name === "") {
+    if (!is_string($name) || $name === "" || !validateInputLength($name)) {
         return NULL;
     }
 

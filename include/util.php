@@ -127,6 +127,20 @@ function convertExtraFieldInfo(array /*<array>*/ $extraFields, bool $atEnd): arr
     return $fields;
 }
 
+// Check whether text fields are (roughly) within the length limit.
+function validateInputLength(string $input): bool {
+    // printFormCell() puts 'maxlength=255' on text input fields. That limits
+    // the length to 255 UTF-16 code units. In PHP we're working with UTF-8
+    // code units (bytes), which makes precisely enforcing that limit annoying,
+    // so approximate the length check as 3 bytes per UTF-16 code unit, because:
+    // - UTF-16 uses one code unit for a character in the BMP. UTF-8 uses at
+    //   most three bytes.
+    // - UTF-16 uses two code units for a character outside the BMP. UTF-8 uses
+    //   four bytes.
+    // Therefore the worst case is three UTF-8 bytes per UTF-16 code unit.
+    return strlen($input) <= 255 * 3;
+}
+
 // Validate extra field input (e.g. from $_POST) against extra fields lists.
 // The input should _not_ have been converted with convertExtraFieldInfo().
 function validateExtraFields(array /*<array>*/ $extraFields, array $extraInput): bool {
@@ -135,7 +149,7 @@ function validateExtraFields(array /*<array>*/ $extraFields, array $extraInput):
         if ($fieldInfo === NULL) {
             return FALSE;
         }
-        if (!is_string($fieldValue)) {
+        if (!is_string($fieldValue) || !validateInputLength($fieldValue)) {
             return FALSE;
         }
         if (($fieldInfo['required'] ?? FALSE) === TRUE && $fieldValue === "") {
@@ -251,7 +265,10 @@ function printFormCell(string $fieldKey, array $fieldInfo, string $fieldName): v
         echo '<noscript>Uploading an image requires JavaScript support. You seem to have JavaScript disabled.</noscript>';
         echo '<input type=hidden ', $common, ' class=image-upload>';
     } else {
-        echo '<input type=text ', $common, '>';
+        // Max length limit of 255 UTF-16 code-units is arbitrary; SQLite
+        // supports longer, but allowing excessively long text can potentially
+        // be abused. See also validateInputLength().
+        echo '<input type=text ', $common, ' maxlength=255>';
     }
     echo '</td>';
 }
