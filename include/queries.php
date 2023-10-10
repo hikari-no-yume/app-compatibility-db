@@ -500,7 +500,7 @@ function listVersionsForApp(int $appId, bool $showUnapproved, bool $moderatorVie
         ],
     ];
 
-    printTable($columns, $rows);
+    printTable($columns, $rows, ['version-', 'version_id']);
 }
 
 function printVersionForm(): void {
@@ -684,6 +684,7 @@ function listReportsForApp(int $appId, bool $showUnapproved, bool $moderatorView
     $rows = query('
         SELECT
             reports.report_id AS report_id,
+            versions.version_id AS version_id,
             versions.name AS version_name,
             reports.rating AS rating,
             reports.created AS created,
@@ -716,6 +717,7 @@ function listReportsForApp(int $appId, bool $showUnapproved, bool $moderatorView
     $columns = [
         'version_name' => [
             'name' => 'Version number',
+            'link' => ['#version-', 'version_id'],
         ],
     ];
     $columns += convertExtraFieldInfo(REPORT_EXTRA_FIELDS, FALSE);
