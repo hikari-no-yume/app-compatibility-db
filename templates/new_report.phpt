@@ -141,7 +141,7 @@ require 'header.phpt';
 <p>Thank you for choosing to contribute. Before submitting your contribution, please note that:</p>
 
 <ul>
-<li>Your contribution will be <strong>publicly attributed to your GitHub username.</strong>
+<li>If approved, your contribution will be <strong>public</strong>, and it will be <strong>publicly attributed to your GitHub username.</strong>
 <li>Your contribution may be rejected by a moderator, especially if it does not comply with the guidelines below.
 <li>By submitting a contribution, you license it under the terms of <a href="<?=htmlspecialchars(SITE_CONTENT_LICENSE_URL)?>"><?=htmlspecialchars(SITE_CONTENT_LICENSE_NAME)?></a>.
 </ul>

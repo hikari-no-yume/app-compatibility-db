@@ -10,9 +10,10 @@ const SITE_NAME = 'Example Emulator app compatibility database';
 const PARENT_SITE_NAME = NULL; // e.g. 'Example Emulator main site'
 const PARENT_SITE_URL = NULL; // e.g. 'https://emulator.example.org'
 
-// URL of the privacy policy of the site (may be external)
-// Make sure this doesn't contradict templates/signin.phpt
-const SITE_PRIVACY_POLICY = "privacy.html";
+// URL of the privacy policy of the site (may be external).
+// Make sure this doesn't contradict templates/signin.phpt!
+// See privacy.example.html for an example of what this might look like.
+const SITE_PRIVACY_POLICY = "/privacy.html";
 
 // Path to the SQLite 3 database, relative to the htdocs directory
 const SITE_DB_PATH = '../app_db.sqlite3';

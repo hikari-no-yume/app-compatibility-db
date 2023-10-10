@@ -22,13 +22,13 @@ Various features:
 TODO:
 
 * License (probably will be MPL-2.0)
-* Example privacy policy
 * Example server configuration
 
 Source code layout:
 
 * [`schema.sql`](schema.sql): SQL schema
 * [`config.example.php`](config.example.php): configuration file example/documentation
+* [`privacy.example.html`](privacy.example.html): example privacy policy
 * [`htdocs/`](htdocs/): public files, mainly static assets
 * [`htdocs/index.php`](htdocs/index.php): sole entry point and router
 * [`templates/`](templates/): templates and view/controller code
@@ -45,3 +45,5 @@ Make sure you have git, PHP 8 and the SQLite 3 command-line interface installed.
 4. Set up database: `sqlite3 app_db.sqlite3 -init schema.sql` (then type `.quit` to exit)
 
 You can then do `cd htdocs && php -S localhost:8000` to start a local server.
+
+Note that for a real deployment, you must also provide a privacy policy!
