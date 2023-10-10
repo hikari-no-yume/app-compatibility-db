@@ -288,15 +288,13 @@ function createApp(array $app): ?int {
                 :name,
                 :extra
             )
-        RETURNING
-            app_id
         ;
     ', [
         ':created_by' => $createdBy,
         ':name' => $name,
         ':extra' => $extra,
     ]);
-    return $rows[0]['app_id'];
+    return dbGetInsertedId();
 }
 
 // It is recommended to call this as part of a transaction.
@@ -564,8 +562,6 @@ function createVersion(array $version): ?int {
                 :name,
                 :extra
             )
-        RETURNING
-            version_id
         ;
     ', [
         ':app_id' => $appId,
@@ -573,7 +569,7 @@ function createVersion(array $version): ?int {
         ':name' => $name,
         ':extra' => $extra,
     ]);
-    return $rows[0]['version_id'];
+    return dbGetInsertedId();
 }
 
 // It is recommended to call this as part of a transaction.
@@ -894,8 +890,6 @@ function createReport(array $report): ?int {
                 :rating,
                 :extra
             )
-        RETURNING
-            report_id
         ;
     ', [
         ':version_id' => $versionId,
@@ -903,7 +897,7 @@ function createReport(array $report): ?int {
         ':rating' => $rating,
         ':extra' => $extra,
     ]);
-    $reportId = $rows[0]['report_id'];
+    $reportId = dbGetInsertedId();
 
     if ($screenshot !== NULL) {
         $rows = query('
@@ -999,14 +993,12 @@ function createOrGetUserId(string $externalUserId, string $externalUsername): in
                 :external_user_id,
                 :external_username
             )
-        RETURNING
-            user_id
         ;
     ', [
         ':external_user_id' => $externalUserId,
         ':external_username' => $externalUsername
     ]);
-    return $rows[0]['user_id'];
+    return dbGetInsertedId();
 }
 
 // If there is an external username associated with this external user ID in the

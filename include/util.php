@@ -36,6 +36,17 @@ function query(string $query, array $args = []): array {
     return $stmt->fetchAll(\PDO::FETCH_ASSOC);
 }
 
+// TODO: Replace with RETURNING once we can require a newer SQLite version.
+function dbGetInsertedId(): ?int {
+    global $db;
+    $id = $db->lastInsertId();
+    if ($id === FALSE) {
+        return NULL;
+    } else {
+        return (int)$id;
+    }
+}
+
 function beginTransaction(): void {
     global $db;
     $db->beginTransaction();
