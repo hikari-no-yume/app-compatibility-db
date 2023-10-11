@@ -1,11 +1,9 @@
 Web app for an emulator app compatibility database
 ==================================================
 
-(WORK IN PROGRESS)
-
 This is a simple web app for managing a public app compatibility database for an emulator project.
 
-I am writing this for [touchHLE](https://touchhle.org/)'s use, but I'm trying to make it general enough that it could be used by other projects as well. To that end, most of the fields are defined by configuration (see `config.example.php`), so you can customise it to fit your needs. I've taken some inspiration from the [WINE AppDB](https://appdb.winehq.org/) and [Dolphin compatibility list](https://dolphin-emu.org/compat/).
+This was written for [touchHLE](https://touchhle.org/)'s use, and you can see it in action at <https://appdb.touchhle.org/>. However, I've tried to make it general enough that it could be used by other projects as well. To that end, most of the fields are defined by configuration (see `config.example.php`), so you can customise it to fit your needs. I've taken some inspiration from the [WINE AppDB](https://appdb.winehq.org/) and [Dolphin compatibility list](https://dolphin-emu.org/compat/).
 
 It uses PHP with a SQLite database and no dependencies, so it's very lightweight and should be easy to set up.
 
@@ -19,10 +17,6 @@ Various features:
 * Reports can have a screenshot attached to them. Screenshots are compressed to ~50KB on the client side.
 * Moderators have the power to approve or delete new reports.
 
-TODO:
-
-* License (probably will be MPL-2.0)
-
 Source code layout:
 
 * [`schema.sql`](schema.sql): SQL schema
@@ -33,6 +27,13 @@ Source code layout:
 * [`htdocs/index.php`](htdocs/index.php): sole entry point and router
 * [`templates/`](templates/): templates and view/controller code
 * [`include/`](include/): utility functions and model code
+
+Licence
+-------
+
+Copyright © 2023 hikari\_no\_yume.
+
+All the code here is licensed under [MPL-2.0](https://spdx.org/licenses/MPL-2.0.html). All the HTML and CSS that can be output by the app is additionally licensed under [CC0-1.0](https://spdx.org/licenses/CC0-1.0.html) to avoid complicating archival and redistribution of databases using this app.
 
 Setting up for development
 --------------------------
