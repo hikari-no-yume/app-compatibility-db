@@ -151,7 +151,7 @@ const REPORT_EXTRA_FIELDS = [
 // Whether to allow attaching a screenshot to a report.
 // Currently there is no configurability for the screenshot processing: they
 // always become JPEGs with a maximum size of 640 on either axis, 80% quality,
-// 500KB upload size limit.
+// 150KB upload size limit.
 const REPORT_SCREENSHOTS_ALLOWED = TRUE;
 
 // Plain text shown when submitting a new report.
