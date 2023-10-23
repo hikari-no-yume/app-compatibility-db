@@ -104,7 +104,7 @@ function listApps(bool $showUnapproved): void {
         WHERE
             :show_unapproved OR approved IS NOT NULL
         ORDER BY
-            name ASC
+            best_rating DESC, name ASC
         ;
     ', [':show_unapproved' => $showUnapproved]);
 
