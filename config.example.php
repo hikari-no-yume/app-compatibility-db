@@ -166,6 +166,13 @@ const MODERATOR_EXTERNAL_USER_IDS = [
     // "github:xxxxxx" => TRUE,
 ];
 
+// External user IDs of users to be excluded from the unapproved reports limit.
+// Users who aren't in this list must wait for their most recent report to be
+// approved or deleted before making a new one.
+const UNLIMITED_EXTERNAL_USER_IDS = [
+    // "github:xxxxxx" => TRUE,
+];
+
 // GitHub API keys for authentication.
 // Register the app at https://github.com/settings/applications/new.
 // The callback URL must be "https://<your domain here>/signin/github-oauth-callback".
