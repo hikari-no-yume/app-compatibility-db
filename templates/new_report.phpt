@@ -8,6 +8,12 @@ if ($session === NULL) {
     exit;
 }
 
+if (signedInUserIsBanned($session)) {
+    header('HTTP/1.1 403 Forbidden');
+    echo 'You have been banned from making reports.';
+    exit;
+}
+
 // To try to avoid a flood of reports, let's rate limit users so they can't
 // submit new ones until their existing ones have been approved.
 if ((UNLIMITED_EXTERNAL_USER_IDS[$session['external_user_id']] ?? FALSE) === FALSE) {

@@ -166,6 +166,11 @@ const MODERATOR_EXTERNAL_USER_IDS = [
     // "github:xxxxxx" => TRUE,
 ];
 
+// External user IDs of users banned from submitting reports.
+const BANNED_EXTERNAL_USER_IDS = [
+    // "github:xxxxxx" => TRUE,
+];
+
 // External user IDs of users to be excluded from the unapproved reports limit.
 // Users who aren't in this list must wait for their most recent report to be
 // approved or deleted before making a new one.

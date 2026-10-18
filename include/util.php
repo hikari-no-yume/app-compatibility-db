@@ -139,6 +139,15 @@ function signedInUserIsModerator(?array $session): bool {
     return (MODERATOR_EXTERNAL_USER_IDS[$session['external_user_id']] ?? FALSE) === TRUE;
 }
 
+// Check whether the logged-in user is banned. Same remarks as for
+// signedInUserIsModerator().
+function signedInUserIsBanned(?array $session): bool {
+    if ($session === NULL) {
+        return FALSE;
+    }
+    return (BANNED_EXTERNAL_USER_IDS[$session['external_user_id']] ?? FALSE) === TRUE;
+}
+
 // Convert extra fields defined in config.php to field lists intended for
 // printTable(), printRecord() or printRecordForm(). Filters by 'at_end'.
 function convertExtraFieldInfo(array /*<array>*/ $extraFields, bool $atEnd): array {
